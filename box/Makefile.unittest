@@ -1,0 +1,7 @@
+GTEST_INC=-I/usr/local/webserver/gtest/include/
+GTEST_OBJ=/usr/local/webserver/gtest/lib/libgtest_main.a  /usr/local/webserver/gtest/lib/libgtest.a 
+CXX=/opt/centos/devtoolset-1.1/root/usr/bin/g++ -g -std=c++11 -Werror
+
+all:o
+o:unittest.box.cc box.object.cc
+	$(CXX)  -o x unittest.box.cc box.object.cc $(GTEST_INC) $(GTEST_OBJ) -lpthread
