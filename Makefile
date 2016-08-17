@@ -1,6 +1,6 @@
 SYSTEM_BIT := $(shell getconf LONG_BIT)
 .SUFFIXES: .c .o .cc
-dev_root=/root/cpp_local/src/
+dev_root=./src/
 
 
 
@@ -43,7 +43,7 @@ LDFLAGS = -rdynamic   -lz -lcrypt -lnsl -lm -lssl -lcrypto  -lstdc++  -lpthread 
 #LIBS = -rdynamic   -lz -lcrypt -lnsl -lm -lssl -lcrypto  -lstdc++  -lpthread -lgomp -D__CLOUDPIC_INTERFACE__  
 
 
-all: $(SHARED_OBJS) build_link
+all: $(SHARED_OBJS) prog.exe
 .o:
 	$(COMPILE) -o $@ $<  $(STATIC_OBJS) $(LIB_PATH) $(INC_PATH)
 .cc:
@@ -56,9 +56,9 @@ all: $(SHARED_OBJS) build_link
 	$(COMPILE) -c -o $@ $<  $(INC_PATH)
 .c.lo:
 	$(COMPILE) -c -fPIC -o $@ $<  $(INC_PATH) 
-build_link: $(SHARED_OBJS) 
+prog.exe: $(SHARED_OBJS) 
 	ar cru libcommon.a $^
-	$(CXX) $(CFLAGS) -o $@ writer/unittest/qqsend.cc $(ALL_OBJS)  $(INC_PATH) $(LIB_PATH) $(OBJS)   $(LDFLAGS)
+	$(CXX) $(CFLAGS) -o $@ $(dev_root)/writer/unittest/qqsend.cc $(ALL_OBJS)  $(INC_PATH) $(LIB_PATH) $(OBJS)   $(LDFLAGS)
 clean:
-	rm -f $(ALL_OBJS) $(ALL_PRGS) libcommon.a build_link
+	rm -f $(ALL_OBJS) $(ALL_PRGS) libcommon.a prog.exe
 

@@ -18,7 +18,7 @@
 #include <cstring>
 #include <sstream>
 
-#include "../../box/box_object.h"
+#include "box/box_object.h"
 #include "writer/TencentStorageServiceWriter.h"
 
 using namespace std;
