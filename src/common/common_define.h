@@ -7,7 +7,6 @@
 
 #ifndef SRC_FDFS2QQ_COMMON_DEFINE_H_
 #define SRC_FDFS2QQ_COMMON_DEFINE_H_
-
 #include <queue>
 #include <iostream>
 #include <stdexcept>
@@ -64,8 +63,52 @@
 #include <sys/socket.h>
 #include <sys/unistd.h>
 
-
+#include "common/INIReader.h"
+using namespace std;
 namespace fdfs2qq{
+	//k\tv{record}k2\tv2
+	const char BOX_KV_SEPERATOR='\x09';// \t
+	const char BOX_RECORD_SEPERATOR='\x01';//item split
+	const char BOX_FIELD_SEPERATOR='\x02';//file type split
+	const char BOX_MSG_SEPERATOR='\x03';//msg type split
+
 	const int MAX_BUFFER_SIZE = 1024;
+
+	const int GetCpuCoreCount=(int)sysconf(_SC_NPROCESSORS_CONF);
+
+	const static INIReader* _IReaderHandle=NULL;
+	const static INIReader* GetIniReader(){
+		if(_IReaderHandle==0){
+			_IReaderHandle=new  INIReader("/root/cpp_local/fdfs_bpt/src/unittest_bin/test.ini");
+		}
+		return _IReaderHandle;
+	}
+	inline const string TRACKER_IP(){
+		return GetIniReader()->Get("tracker","host","");
+	}
+	inline const int TRACKER_PORT(){
+		return GetIniReader()->GetInteger("tracker","port",0);
+	}
+	inline const int MAX_GRP_ID(){
+		return GetIniReader()->GetInteger("storage","group_count",0);
+	}
+	inline const std::string LOGPREFIX(){
+		return GetIniReader()->Get("logger","prefix","");
+	}
+	inline const std::string BINLOG_LOGPREFIX(){
+		return GetIniReader()->Get("logger","binlog_prefix","");
+	}
+
+	inline const char* SOCKET_PATH(){
+		auto ret= GetIniReader()->Get("unix","produce_file","");
+		return ret.c_str();
+	}
+	inline const char* RECV_SOCKET_PATH(){
+			auto ret= GetIniReader()->Get("unix","consume_file","");
+			return ret.c_str();
+		}
+
+	 const int g_fdfs_network_timeout=20;
+
 }
 #endif /* SRC_FDFS2QQ_COMMON_DEFINE_H_ */

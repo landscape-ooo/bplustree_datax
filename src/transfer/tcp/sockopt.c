@@ -567,6 +567,136 @@ int connectserverbyip_nb_ex(int sock, const char *server_ip, \
 	return result;
 }
 
+
+
+int connectserverbyunxdomain_nb_ex(int sock, const char *socket_path, \
+		const int timeout, \
+		const int auto_detect)
+{
+	int result;
+	int flags;
+	bool needRestore;
+	socklen_t len;
+
+#ifdef USE_SELECT
+	fd_set rset;
+	fd_set wset;
+	struct timeval tval;
+#else
+	struct pollfd pollfds;
+#endif
+
+	struct sockaddr_un addr;
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = PF_UNIX;
+
+	if (*socket_path == '\0') {
+		strncpy(addr.sun_path, "/tmp/null.sock",
+				sizeof(addr.sun_path) - 1);
+		//strncpy(addr.sun_path + 1, socket_path + 1,
+			//	sizeof(addr.sun_path) - 2);
+	} else {
+		strncpy(addr.sun_path, socket_path,
+				sizeof(addr.sun_path) - 1);
+	}
+//	unlink(addr.sun_path);
+//	addr.sin_port = htons(server_port);
+//	result = inet_aton(server_ip, &addr.sin_addr);
+//	if (result == 0 )
+//	{
+//		return EINVAL;
+//	}
+//
+	if (auto_detect==1)
+	{
+		flags = fcntl(sock, F_GETFL, 0);
+		if (flags < 0)
+		{
+			return errno != 0 ? errno : EACCES;
+		}
+
+		if ((flags & O_NONBLOCK) == 0)
+		{
+			if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0)
+			{
+				return errno != 0 ? errno : EACCES;
+			}
+
+			needRestore = true;
+		}
+		else
+		{
+			needRestore = false;
+		}
+	}
+	else
+	{
+		needRestore = false;
+		flags = 0;
+	}
+
+	do
+	{
+		if (connect(sock, (const struct sockaddr*)&addr, \
+			sizeof(addr)) < 0)
+		{
+			result = errno != 0 ? errno : EINPROGRESS;
+			if (result != EINPROGRESS)
+			{
+				break;
+			}
+		}
+		else
+		{
+			result = 0;
+			break;
+		}
+
+
+#ifdef USE_SELECT
+		FD_ZERO(&rset);
+		FD_ZERO(&wset);
+		FD_SET(sock, &rset);
+		FD_SET(sock, &wset);
+		tval.tv_sec = timeout;
+		tval.tv_usec = 0;
+
+		result = select(sock+1, &rset, &wset, NULL, \
+				timeout > 0 ? &tval : NULL);
+#else
+		pollfds.fd = sock;
+		pollfds.events = POLLIN | POLLOUT;
+		result = poll(&pollfds, 1, 1000 * timeout);
+#endif
+
+		if (result == 0)
+		{
+			result = ETIMEDOUT;
+			break;
+		}
+		else if (result < 0)
+		{
+			result = errno != 0 ? errno : EINTR;
+			break;
+		}
+
+		len = sizeof(result);
+		if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &result, &len) < 0)
+		{
+			result = errno != 0 ? errno : EACCES;
+			break;
+		}
+	} while (0);
+
+	if (needRestore)
+	{
+		fcntl(sock, F_SETFL, flags);
+	}
+
+	return result;
+}
+
+
 in_addr_t getIpaddr(getnamefunc getname, int sock, \
 		char *buff, const int bufferSize)
 {

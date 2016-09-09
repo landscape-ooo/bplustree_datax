@@ -40,11 +40,13 @@ TencentStorageServiceWriter* TencentStorageServiceWriter::messageBodyFormat(
 	if (bodyPtr->isFilehandle) {
 		this->filename = bodyPtr->getFilehandle();
 		//mmap data
-		if (int datasize = transfer::fstream::Getfilesize(this->filename) != 0) {
+		unsigned long datasize = transfer::fstream::Getfilesize(this->filename) ;
+		if (datasize!= 0) {
 			this->databuffer.assign(datasize, ' ');
-			char* ptr_start=(char*)databuffer.c_str();
-			transfer::fstream::MMAP_FILE(this->filename,
-					ptr_start, datasize);
+//			char* ptr_start=(char*)databuffer.c_str();
+//			transfer::fstream::MMAP_FILE(this->filename,
+//					ptr_start, datasize);
+			transfer::fstream::STREAM_READ(this->filename,this->databuffer);
 			md5sum = fdfs2qq::GetMd5sum(this->databuffer.c_str(),
 					this->databuffer.length());
 		}
@@ -52,10 +54,12 @@ TencentStorageServiceWriter* TencentStorageServiceWriter::messageBodyFormat(
 	// 元数据填充info字段
 	std::string info;
 	if (!this->filename_meta.empty()) {
-		//mmap meta
-		transfer::fstream::MMAP_FILE(this->filename_meta, metaPtr, metasize);
-		info = std::string(metaPtr, metasize);
-		transfer::fstream::MMAP_FILE_CLOSE(metaPtr, metasize);
+
+		unsigned long datasize = transfer::fstream::Getfilesize(this->filename_meta) ;
+		if (datasize!= 0) {
+			info.assign(datasize, ' ');
+			transfer::fstream::STREAM_READ(this->filename_meta,info);
+		}
 	}
 
 	if (!this->is_overwrite_flag) {
@@ -88,7 +92,9 @@ TencentStorageServiceWriter* TencentStorageServiceWriter::messageHeaderFormat(
 			"overwrite_flag", false);
 
 	if (!overwrite_flag.empty()) {
-		is_overwrite_flag = true;
+		if(std::stoi( overwrite_flag )==1){//only special 1
+			is_overwrite_flag = true;
+		}
 	}
 	return this;
 }
@@ -159,29 +165,6 @@ void TencentStorageServiceWriter::sprintf_response(const string& rsp_origin) {
 	string rsp(rsp_origin);
 	string fileid;
 	_decode_response(rsp,pic_info,profile,fileid);
-
-
-
-//
-//	printf("rsp code %d\n", retcode);
-//	printf("rsp fileid: %s\n", fileid.c_str());
-//
-//	for (unsigned i = 0; i < pic_info.list.size(); ++i) {
-//			printf("md5: %s\nwidth: %u\nheight: %u\nfsize: %u\n",
-//			::transfer::tcp::Mem2hex(pic_info.list[i].fmd5.c_str(), 16).c_str(),
-//			pic_info.list[i].width, pic_info.list[i].height,
-//			pic_info.list[i].fsize);
-//	}
-//
-//	printf("frame_count -> %s\n", profile["frame_count"].c_str());
-//	printf("origin_height -> %s\n", profile["origin_height"].c_str());
-//	printf("origin_width -> %s\n", profile["origin_width"].c_str());
-//	printf("origin_md5 -> %s\n",
-//			::transfer::tcp::Mem2hex(profile["origin_md5"].c_str(), 16).c_str());
-//	printf("origin_size -> %s\n", profile["origin_size"].c_str());
-//	printf("origin_type -> %s\n", profile["origin_type"].c_str());
-
-
 }
 
 }}

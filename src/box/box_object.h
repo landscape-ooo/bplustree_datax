@@ -13,15 +13,10 @@
 #ifndef SRC_BOX_BOX_OBJECT_H_
 #define SRC_BOX_BOX_OBJECT_H_
 namespace box {namespace field {
-
+using namespace fdfs2qq;
 using namespace std;
 const int BUFFER_KK_SIZE=128;
 const int BUFFER_KV_SIZE=1024;
-//k\tv{record}k2\tv2
-const char BOX_KV_SEPERATOR='\x09';// \t
-const char BOX_RECORD_SEPERATOR='\x01';//item split
-const char BOX_FIELD_SEPERATOR='\x02';//file type split
-const char BOX_MSG_SEPERATOR='\x03';//msg type split
 
 
 struct HeaderItem {

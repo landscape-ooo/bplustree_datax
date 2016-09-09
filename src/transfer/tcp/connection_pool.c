@@ -92,6 +92,53 @@ int conn_pool_connect_server(ConnectionInfo *pConnection, \
 	return 0;
 }
 
+
+
+int conn_pool_connect_unixdomain(ConnectionInfo *pConnection, \
+		const int connect_timeout)
+{
+	int result;
+
+	if (pConnection->sock >= 0)
+	{
+		close(pConnection->sock);
+	}
+
+	pConnection->sock = socket(AF_UNIX, SOCK_STREAM, 0);
+	if(pConnection->sock < 0)
+	{
+		logError("file: "__FILE__", line: %d, " \
+			"socket create failed, errno: %d, " \
+			"error info: %s", __LINE__, errno, STRERROR(errno));
+		return errno != 0 ? errno : EPERM;
+	}
+
+	if ((result=tcpsetnonblockopt(pConnection->sock)) != 0)
+	{
+		close(pConnection->sock);
+		pConnection->sock = -1;
+		return result;
+	}
+	result=connectserverbyunixdomain_nb(pConnection->sock, \
+			pConnection->socket_path, \
+			connect_timeout);
+
+	if (result!= 0)
+	{
+		logError("file: "__FILE__", line: %d, " \
+			"connect to %s:%d fail, errno: %d, " \
+			"error info: %s", __LINE__, pConnection->socket_path, \
+			pConnection->port, result, STRERROR(result));
+
+		close(pConnection->sock);
+		pConnection->sock = -1;
+		return result;
+	}
+
+	return 0;
+}
+
+
 static int conn_pool_get_key(const ConnectionInfo *conn, char *key, int *key_len)
 {
 	struct in_addr sin_addr;

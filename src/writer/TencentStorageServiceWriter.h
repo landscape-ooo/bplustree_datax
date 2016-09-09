@@ -18,7 +18,7 @@ namespace writer{ namespace tencent{
 class TencentStorageServiceWriter{
 public :
 	TencentStorageServiceWriter(){
-
+		this->sdkcodec.set_business_id("ganji");
 	}
 	void messageInputStream();
 	string  messageOutputStream();

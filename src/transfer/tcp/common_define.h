@@ -31,6 +31,8 @@ typedef DWORD (WINAPI *ThreadEntranceFunc)(LPVOID lpThreadParameter);
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/un.h>
+
 #define FILE_SEPERATOR	"/"
 typedef int SOCKET;
 #define closesocket     close
@@ -158,8 +160,16 @@ typedef void* (*MallocFunc)(size_t size);
 #define strcasecmp	_stricmp
 #endif
 
+
+
+#include "logger.h"
+
+
+
+
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif

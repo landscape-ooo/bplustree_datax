@@ -33,7 +33,10 @@ std::string GetMd5sum(const char* file_blob_ptr, const std::size_t s_file_blob);
 
 std::string String_Format(const char* fmt, ...);
 
+int String2int(const std::string&);
 
+void STREAM_READ(
+		const std::string filename,std::string &readbuffer) ;
 
 }
 

@@ -5,7 +5,6 @@
  *      Author: a11
  */
 #include "box_object.h"
-
 /**
  * [msgs[headers][body]]
  *
@@ -149,7 +148,7 @@ map<string,string> MappingHeaders(const Header* headerPtr){
 	for(int i=0;i<headerPtr->_MaxPtrLen;i++){
 		auto headeritem=*(headerPtr->_Hptr+i);
 		string key(headeritem.key_v);
-		string value(headeritem.key_v);
+		string value(headeritem.value_v);
 		ret.insert(std::make_pair(key,value));
 	}
 	return ret;

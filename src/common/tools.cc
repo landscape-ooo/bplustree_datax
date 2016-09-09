@@ -259,5 +259,27 @@ std::string fdfs2qq::String_Format(const char* fmt, ...){
     delete[] buffer;
     return ret;
 }
+int fdfs2qq::String2int(const std::string& str){
+	string volumns_str(str);
+	volumns_str.erase(
+			remove_if(volumns_str.begin(), volumns_str.end(),
+					not1(ptr_fun(static_cast<int (*)(int)>(isdigit)))), volumns_str.end()
+	);
+	return std::atoi(volumns_str.c_str());
+}
 
+
+void fdfs2qq::STREAM_READ(
+		const std::string filename,std::string &readbuffer) {
+	struct stat buf;
+	if (stat(filename.c_str(), &buf) != 1) { //check exist
+		std::ifstream t;
+		t.open(filename.c_str(),std::ios::in|std::ios::binary);
+		t.seekg(0, std::ios::end);
+		size_t size = t.tellg();
+		readbuffer = std::string(size, ' ');
+		t.seekg(0);
+		t.read(&readbuffer[0], size); //read memory
+	}
+}
 

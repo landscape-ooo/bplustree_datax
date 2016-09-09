@@ -12,7 +12,7 @@
 #define _SOCKETOPT_H_
 
 #include "common_define.h"
-
+#include "logger.h"
 #define FDFS_WRITE_BUFF_SIZE  256 * 1024
 
 #ifdef __cplusplus
@@ -110,6 +110,10 @@ int connectserverbyip_nb_ex(int sock, const char *server_ip, \
 		const short server_port, const int timeout, \
 		const bool auto_detect);
 
+int connectserverbyunxdomain_nb_ex(int sock, const char *sock_path, \
+		const int timeout, \
+		const int auto_detect);
+
 /** connect to server by non-block mode, the socket must be set to non-block
  *  parameters:
  *          sock: the socket,  must be set to non-block
@@ -120,6 +124,10 @@ int connectserverbyip_nb_ex(int sock, const char *server_ip, \
 */
 #define connectserverbyip_nb(sock, server_ip, server_port, timeout) \
 	connectserverbyip_nb_ex(sock, server_ip, server_port, timeout, false)
+
+
+#define connectserverbyunixdomain_nb(sock, socketpath, timeout) \
+		connectserverbyunxdomain_nb_ex(sock, socketpath, timeout, 0)
 
 /** connect to server by non-block mode, auto detect socket block mode
  *  parameters:

@@ -7,20 +7,15 @@
 
 #ifndef SRC_FDFS2QQ_FDFS2QQ_DEFINE_H_
 #define SRC_FDFS2QQ_FDFS2QQ_DEFINE_H_
-#include "common_define.h"
-namespace fdfs2qq{
-
-
-const std::string LOGPREFIX="/data/log/fdfs2qq";
-
-
-int GetCpuCoreCount(){
-	return (int)sysconf(_SC_NPROCESSORS_CONF);
-}
-
-
-}
-
+//#include "common_define.h"
+//namespace fdfs2qq{
+//
+//
+//
+//
+//
+//}
+//
 
 
 

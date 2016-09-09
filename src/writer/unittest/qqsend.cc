@@ -36,14 +36,25 @@ void buildCharlist(std::vector<std::string>& input, std::string& ret) {
 	ret.assign(scout.str());
 }
 ///tmp/ssssss2.png /tmp/bd.png  10.126.94.88
-std::vector<MessageItem> buildHeader(){
+std::vector<MessageItem> buildHeader(string fileid,string sourcefile){
 	std::vector<std::string> input= {
-			"fileid\tgjfs/123/123/123/jpg",
-			"filehandle\t/tmp/bd.png",
-			"file_meta\t/tmp/bd.png-m",
-			"overwrite_flag\tfalse",
+			//"fileid\tgjfs/123/123/11111123/jpg",
+			//"filehandle\t/tmp/bd.png",
+			//"file_meta\t/tmp/bd.png-m",
+			"overwrite_flag\t1",
 			"category\tsecondmarket",
 			"c1\tv1","d2\tv2"};
+	stringstream formstr;
+	formstr<<"fileid\t"<<fileid;
+	input.push_back(formstr.str());
+	formstr.str("");
+	formstr<<"filehandle\t"<<sourcefile;
+	input.push_back(formstr.str());
+	formstr.str("");
+	formstr<<"file_meta\t"<<sourcefile<<"-m";
+	input.push_back(formstr.str());
+
+
 	string ret;
 	buildCharlist(input,ret);
 	string body="this is body";
@@ -58,12 +69,12 @@ std::vector<MessageItem> buildHeader(){
 
 int main(int argc, const char *argv[]) {
 
-	if (argc < 4) {
-		printf("usage: %s fileid picfile severip\n", argv[0]);
+	if (argc < 3) {
+		printf("usage: %s fileid picfile\n", argv[0]);
 		return 0;
 	}
 
-	auto msg=buildHeader();
+	auto msg=buildHeader(std::string(argv[1]),std::string(argv[2]));
 	writer::tencent::TencentStorageServiceWriter *wr=new  	writer::tencent::TencentStorageServiceWriter;
 	auto rsp =wr->messageHeaderFormat(&msg[0])->messageBodyFormat(&msg[0])->messageOutputStream();
 	wr->sprintf_response(rsp);

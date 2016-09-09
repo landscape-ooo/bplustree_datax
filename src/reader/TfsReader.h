@@ -7,7 +7,15 @@
 
 #ifndef SRC_READER_TFSREADER_H_
 #define SRC_READER_TFSREADER_H_
+namespace reader { namespace tfs {
+class TfsReader{
 
+
+
+};
+
+
+}}
 
 
 

@@ -9,15 +9,10 @@ namespace jobschedule {
 
 int BptDelegate::InitBptFromFilesource(bpt::bplus_tree *treePtr,
 		const string& filepath,const int default_value) {
-	std::vector<string> lines;
-	//auto int_ret = Readhugefile(filepath.c_str(), lines);
-//	if (int_ret <= 0) {
-//		return -1;
-//	}
-
-	for (std::vector<string>::iterator it = lines.begin(); it != lines.end();
-			it++) {
-		std::string tmp(*it);
+	string tmp;
+	std::ifstream t;
+	t.open(filepath.c_str(),std::ios::in|std::ios::binary);
+	while(std::getline(t,tmp)){
 		bpt::key_t _key(tmp.c_str());
 		bpt::value_t _value(default_value);
 		InsertAndUpdateBptfromData<bpt::key_t, bpt::value_t>(treePtr, &_key,
