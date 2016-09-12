@@ -38,9 +38,6 @@ RESPONSE_HEADER StorageFileObject2ResponseObject(const StorageFileObject& resp){
 }
 
 
-
-
-
 const std::string StorageConfig::FDFS_STORAGE_CONF =
 		"/usr/local/webserver/fdfs/etc/storage.conf";
 const INIReader* StorageConfig::readerPtr=getReader();
@@ -51,12 +48,6 @@ std::map<std::string, std::string> StorageConfig::VolumnsDict =
 		GetVolumnsDict();
 
 const int StorageConfig::MAX_VOLUMNS_COUNT = GetVolumnsCount();
-//
-//const std::string StorageConfig::PIC_EXT_LIST[] =
-//		{ "jpg", "jpeg", "bmp", "png","gif" };
-
-const std::vector<string> StorageConfig::PIC_EXT_LIST =
-{ "jpg", "jpeg", "bmp", "png","gif" };
 
 
 INIReader*   StorageConfig::getReader(){
@@ -161,8 +152,13 @@ bool StorageConfig::GetfileListOfStoragepath(
 		const string& storagepath,
 		std::vector<string>& file_list) {
 	//get conf
+	std::vector<string>  PIC_EXT_LIST =
+				{ "jpg", "jpeg", "bmp", "png","gif" };
 
-	for (string item:StorageConfig::PIC_EXT_LIST) {
+	for(auto it=PIC_EXT_LIST.begin();it!=PIC_EXT_LIST.end();
+			it++){
+		auto item=*it;
+//	for (string item:StorageConfig::PIC_EXT_LIST) {
 		std::vector<string> file_list_tmp;
 		file_list_tmp.clear();
 		const std::string full_path = storagepath + "/*." + item;

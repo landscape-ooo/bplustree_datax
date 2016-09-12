@@ -63,6 +63,18 @@ struct StorageVolumnObject{
 	StorageVolumnObject(){
 
 	}
+	StorageVolumnObject& operator=(
+			StorageVolumnObject const& other) {
+
+		if (this != &other) {
+			grpid = other.grpid;
+			volumnid = other.volumnid;
+			volumnstr = other.volumnstr;
+			subdir = other.subdir;
+		}
+		return *this;
+	}
+
 };
 
 
@@ -104,10 +116,21 @@ struct StorageFileObject{
 				this->volumnstr = volumnstr;
 				stringstream sm;
 				sm << this->volumnstr << "/" << this->subdir << "/" << vec1[4];
-			this->physical_store_path=sm.str();
+				this->physical_store_path = sm.str();
+			}
 		}
 	}
-}
+	StorageFileObject& operator = (StorageFileObject const& other) {
+
+			if (this != &other) {
+				global_fileid = other.global_fileid;
+				grpid = other.grpid;
+				volumnid = other.volumnid;
+				subdir = other.subdir;
+				volumnstr = other.volumnstr;
+			}
+			return *this;
+		}
 private:
 	StorageFileObject(const StorageVolumnObject& obj_parent);
 };
@@ -126,8 +149,12 @@ StorageFileObject ResponseObject2StorageFileObject(const RESPONSE_HEADER& resp);
 RESPONSE_HEADER StorageFileObject2ResponseObject(const StorageFileObject& resp);
 
 
+
+
 class StorageConfig {
 public:
+
+//	static std::vector<string>  PIC_EXT_LIST ;
 
 	static	const std::string FDFS_STORAGE_CONF;
 	static	const INIReader* readerPtr;
@@ -138,7 +165,6 @@ public:
 
 	static const int MAX_VOLUMNS_COUNT;
 
-	static const std::vector<string>  PIC_EXT_LIST ;
 
 	static INIReader*   getReader();
 

@@ -186,6 +186,8 @@ void ProducerCli::ReadyProducer() {
 //once
 void ProducerCli::ForkProducer() {
 
+	_ProducerMsg(G_Volumns_Mq.try_pop());
+
 	//pool
 	int max_c = MAX_PRODUCER_THREAD_NUM;
 	pthread_t pool[max_c];
