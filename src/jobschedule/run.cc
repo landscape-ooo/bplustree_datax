@@ -7,7 +7,7 @@
 #include <iostream>
 #include "ProducerCli.h"
 //#include "ConsumerCli.h"
-//#include "TrackerCli.h"
+#include "TrackerCli.h"
 using namespace jobschedule;
 using namespace std;
 int main(int argc, const char *argv[]) {
@@ -26,9 +26,9 @@ int main(int argc, const char *argv[]) {
 //		//fork producer
 		//ProducerCli::ForkConsumer();
 	}else if (casestr == "tracker") {
-//		TrackerCli::InitBpt();
-//		TrackerCli::StartRecvBinlog();
-//		TrackerCli::RegisteEvent();
+		TrackerCli::InitBpt();
+		TrackerCli::StartRecvBinlog();
+		TrackerCli::RegisteEvent();
 		//fork producer
 	}else{
 
