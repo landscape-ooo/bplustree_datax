@@ -62,6 +62,7 @@ prog.exe: $(SHARED_OBJS)
 	ar cru libcommon.a $^
 	$(CXX) $(CFLAGS) -o $@ $(dev_root)/writer/unittest/qqsend.cc $(ALL_OBJS)  $(INC_PATH) $(LIB_PATH) $(OBJS)   $(LDFLAGS)
 test:
+	rm -f *.db
 #	$(CXX) $(CFLAGS) -o unittest.iniconfig.exe $(dev_root)/common/unittest/test.iniconfig.cc libcommon.a   \
 		$(INC_PATH) $(LIB_PATH) $(LDFLAGS) $(GTEST_INC) $(GTEST_LIB)
 #	$(CXX) $(CFLAGS) -o unittest.storageconf.exe $(dev_root)/box/unittest/test.storageconf.cc \
@@ -70,7 +71,7 @@ test:
 		
 	$(CXX) $(CFLAGS) -o unittest.cli_produce.exe  $(dev_root)/jobschedule/run.cc \
 		$(dev_root)/jobschedule/TrackerCli.cc \
-		$(dev_root)/jobschedule/ConsumerCli.cc $(dev_root)/jobschedule/ProducerCli.cc \
+		$(dev_root)/jobschedule/ProducerCli.cc \
 		$(dev_root)/box/StorageConfig.cc libcommon.a ./src/store_photo_sdk/64/libopenapi.a  ./src/store_photo_sdk/64/libprotobuf.a  \
 		$(INC_PATH) $(LIB_PATH) /usr/lib64/libevent.so  $(LDFLAGS)  -lrt $(GTEST_INC) $(GTEST_LIB)  -lrt
 	
