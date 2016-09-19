@@ -33,8 +33,13 @@
 #include "box/StorageConfig.h"
 #include "transfer/tcp_transfer.h"
 #include "transfer/unixdomain.h"
+
+#include "box/box_object.h"
+#include "writer/TencentStorageServiceWriter.h"
+
 namespace jobschedule {
 using namespace std;
+using namespace box::field;
 #ifndef SRC_SRC_EVENTCLIENT_H_
 #define SRC_SRC_EVENTCLIENT_H_
 struct EventClient {
@@ -43,18 +48,19 @@ struct EventClient {
 };
 #endif
 class ProducerCli {
-public:
-//	static ::pthread_cond_t G_Condition_variable;
+private:
+	static ::pthread_cond_t G_Condition_variable;
 	static int MAX_PRODUCER_THREAD_NUM;
 	static int MAX_CONSUME_THREAD_NUM;
-	static void Init();
 	static const char * _notify_socket_path;
 	static const char * item_socket_path;
 public:
 	/****
 	 * ------>producer mq start
 	 */
+	static void Init();
 	static void ForkProducer();
+	static void ForkConsumer();
 	static void* WaitProducer(void*);
 	static void LSMBinlog();
 	static void ReadyProducer();
@@ -69,7 +75,8 @@ public:
 		 * event end
 		 */
 private:
-
+	static void* ListenItemConsumerMq(void*);
+	static void _ConsumerMsg(const StorageFileObject &info) ;
 	static void _EventSignalCallback(evutil_socket_t fd, short event, void *arg);
 
 	static void _SendUnixDomain(const RESPONSE_HEADER& resp);
@@ -86,7 +93,7 @@ private:
 	static const string NULL_MSG_SIGNAL;
 	static void TransferByFilename(ConnectionInfo* ,const string );
 	static int TransferByData(ConnectionInfo* pCurrentServer,\
-			const string& data,string &resp);
+			const string& data,RESPONSE_HEADER &);
 	static int TransferByData(ConnectionInfo* pCurrentServer,\
 				const string& data);
 
@@ -94,7 +101,7 @@ private:
 
 	static ConnectionInfo* pTrackerServer;
 
-//	static fdfs2qq::concurrent_queue<fdfs2qq::RESPONSE_HEADER> G_ItemProduce_Mq;
+	static fdfs2qq::concurrent_queue<string> G_ItemProduce_Mq;
 
 	static ::pthread_mutex_t G_produce_Ptrmutex;
 	static ::pthread_mutex_t G_bplus_tree_Ptrmutex;
@@ -103,7 +110,7 @@ private:
 	static bpt::bplus_tree ** G_BptList;
 
 
-	static fdfs2qq::concurrent_queue<fdfs2qq::StorageVolumnObject> G_Volumns_Mq;
+	static fdfs2qq::concurrent_queue<string> G_Volumns_Mq;
 
 
 };

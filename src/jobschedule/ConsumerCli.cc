@@ -37,7 +37,9 @@ void ConsumerCli::ForkConsumer() {
 void* ConsumerCli::ListenItemConsumerMq(void*) {
 	while (true) {
 		if (!fdfs2qq::G_ItemProduce_Mq.empty()) {
-			const StorageFileObject msg(fdfs2qq::G_ItemProduce_Mq.try_pop());
+			auto fileid=fdfs2qq::G_ItemProduce_Mq.try_pop();
+			auto str_fileid=std::string(fileid.c_str());
+			//const StorageFileObject msg();
 			//exit char????
 //			if(msg.IS_PROGRAME_THREAD_STOP==true){
 //				fdfs2qq::G_ItemProduce_Mq.push(msg);//push back
@@ -46,7 +48,7 @@ void* ConsumerCli::ListenItemConsumerMq(void*) {
 //				break;
 //			}else{
 			//normal consume
-			_ConsumerMsg(msg);
+		//	_ConsumerMsg(msg);
 //			}
 		} else {
 //			transfer::tcp::SendByUnixDomain(item_socket_path,"d");

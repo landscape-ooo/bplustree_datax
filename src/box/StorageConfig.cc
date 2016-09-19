@@ -9,11 +9,78 @@
 namespace fdfs2qq {
 
 
-::pthread_cond_t G_Condition_variable;
+
+StorageVolumnObject::StorageVolumnObject(const StorageVolumnObject& oth) {
+	grpid = oth.grpid;
+	volumnid = oth.volumnid;
+	subdir = oth.subdir;
+	volumnstr = oth.volumnstr;
+}
+StorageVolumnObject::StorageVolumnObject(const string& msgstr,
+		const string volumnstr = "") {
+	/*gjfstmp2/M00/00/19/CgP_ylcD2nqAAVr6AADKanPqNRs485.jpg*/
+	auto vec1 = fdfs2qq::split(msgstr, '/');
+	if (vec1.size() > 0) {
+		this->grpid = vec1[0];
+		this->volumnid = vec1[1];
+		this->subdir = vec1[2] + "/" + vec1[3];
+		if (!volumnstr.empty()) {
+			this->volumnstr = volumnstr;
+		}
+	}
+}
+StorageVolumnObject::StorageVolumnObject() {
+
+}
+StorageVolumnObject::~StorageVolumnObject() {
+
+}
+StorageVolumnObject& StorageVolumnObject::operator=(
+		StorageVolumnObject const& other) {
+
+	if (this != &other) {
+		grpid = other.grpid;
+		volumnid = other.volumnid;
+		volumnstr = other.volumnstr;
+		subdir = other.subdir;
+	}
+	return *this;
+}
+
+std::string StorageVolumnObject::to_string() const {
+	std::vector<std::string> v;
+	v.push_back(this->grpid);
+	v.push_back(this->volumnid);
+	v.push_back(this->volumnstr);
+	v.push_back(this->subdir);
+
+	char delim = '\t';
+	return fdfs2qq::implode(delim, v);
+}
 
 
-fdfs2qq::concurrent_queue<StorageFileObject> G_ItemProduce_Mq;
 
+StorageVolumnObject StringToStorageVolumnObject(const string& msgstr){
+	StorageVolumnObject obj;
+	char delim = '\t';
+	auto vec1 = fdfs2qq::split(msgstr, delim);
+	if (vec1.size() ==4) {
+		obj.grpid = vec1[0];
+		obj.volumnid = vec1[1];
+		obj.volumnstr = vec1[2];
+		obj.subdir = vec1[3] ;
+	}
+	return obj;
+}
+
+RESPONSE_HEADER StringToResponseObject(const string fileid,const string volumns,const string status){
+	RESPONSE_HEADER header;
+
+	memcpy(&header.fileid,fileid.c_str(),fileid.length());
+	memcpy(&header.ext_volumns,volumns.c_str(),volumns.length());
+	memcpy(&header.ext_status,status.c_str(),status.length());
+	return header;
+}
 RESPONSE_HEADER StringToResponseObject(const string resp){
 	RESPONSE_HEADER header;
 	memcpy(&header,&resp,resp.length());
@@ -21,10 +88,12 @@ RESPONSE_HEADER StringToResponseObject(const string resp){
 }
 string ResponseObjectToString(const RESPONSE_HEADER& obj){
 	size_t relen=sizeof(RESPONSE_HEADER);
-	string tmp;
-	tmp.resize(relen);
+	char tmp[relen];
+//	string tmp;
+//	tmp.resize(relen);
 	memcpy(&tmp,&obj,relen);
-	return tmp;
+
+	return std::string(tmp,relen);
 }
 StorageFileObject ResponseObject2StorageFileObject(const RESPONSE_HEADER& resp){
 	string volumns(resp.ext_volumns,sizeof resp.ext_volumns);
@@ -130,7 +199,7 @@ int StorageConfig::getStoreFolderByOrder(
 		for(std::vector<string>::iterator it2=_tmp_v_path1.begin();it2!=_tmp_v_path1.end();
 					it2++){
 		/* /data2/data/FF/FF  */
-		StorageVolumnObject obj;
+		StorageVolumnObject obj("");
 		obj.grpid=GROUP_ID;
 		stringstream sm;
 		sm<<*it<<"/"<<*it2;

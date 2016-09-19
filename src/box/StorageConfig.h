@@ -27,7 +27,7 @@ struct RESPONSE_HEADER{
 
 enum RESPONSE_STATUS{
 
-	NEWONE=200,
+	REGISTSUCESS=200,
 	CACHE=307,
 	EXIST=304,
 	NOTFOUND=404
@@ -44,38 +44,17 @@ struct StorageVolumnObject{
 	string volumnid; // M02
 	string volumnstr; // /data2/data
 	string subdir;// 26/79/
-	StorageVolumnObject(const StorageVolumnObject& oth){
-		this->grpid = oth.grpid;
-		this->volumnid = oth.volumnid;
-		this->subdir = oth.subdir;
-		this->volumnstr = oth.volumnstr;
-	}
-	StorageVolumnObject(const string& msgstr, const string volumnstr = "") {
-		/*gjfstmp2/M00/00/19/CgP_ylcD2nqAAVr6AADKanPqNRs485.jpg*/
-		auto vec1 = fdfs2qq::split(msgstr, '/');
-		this->grpid = vec1[0];
-		this->volumnid = vec1[1];
-		this->subdir = vec1[2] + "/" + vec1[3];
-		if (!volumnstr.empty()) {
-			this->volumnstr = volumnstr;
-		}
-	}
-	StorageVolumnObject(){
-
-	}
+	StorageVolumnObject(const StorageVolumnObject& oth);
+	StorageVolumnObject(const string& msgstr, const string volumnstr) ;
+	StorageVolumnObject();
+	~StorageVolumnObject();
 	StorageVolumnObject& operator=(
-			StorageVolumnObject const& other) {
+			StorageVolumnObject const& other);
+	std::string to_string() const;
 
-		if (this != &other) {
-			grpid = other.grpid;
-			volumnid = other.volumnid;
-			volumnstr = other.volumnstr;
-			subdir = other.subdir;
-		}
-		return *this;
-	}
 
 };
+StorageVolumnObject StringToStorageVolumnObject(const string& msgstr);
 
 
 struct StorageFileObject{
@@ -144,6 +123,7 @@ struct msgInfo{
 
 
 RESPONSE_HEADER StringToResponseObject(const string resp);
+RESPONSE_HEADER StringToResponseObject(const string fileid,const string volumns,const string status);
 string ResponseObjectToString(const RESPONSE_HEADER& obj);
 StorageFileObject ResponseObject2StorageFileObject(const RESPONSE_HEADER& resp);
 RESPONSE_HEADER StorageFileObject2ResponseObject(const StorageFileObject& resp);
@@ -208,7 +188,7 @@ private:
 
 };
 
-extern fdfs2qq::concurrent_queue<StorageFileObject> G_ItemProduce_Mq;
+extern fdfs2qq::concurrent_queue<string> G_ItemProduce_Mq;
 extern ::pthread_cond_t G_Condition_variable;
 
 

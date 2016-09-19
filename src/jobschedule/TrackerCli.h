@@ -64,6 +64,8 @@ private:
 	 * <-------event  start
 	 */
 	static bool _BinlogHandle(const string msgstr);
+	static bool _BinlogHandle(const string fileid,
+			const string volumnstr);
 	static int _QueryHandle(const string msgstr);
 
 	static void _EventAcceptCallback(int fd,

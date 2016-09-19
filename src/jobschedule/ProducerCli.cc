@@ -7,18 +7,21 @@
 #include "ProducerCli.h"
 namespace jobschedule {
 const string ProducerCli::NULL_MSG_SIGNAL = "NULL MQ,NEED PUT MSG";
-::pthread_mutex_t ProducerCli::G_bplus_tree_Ptrmutex = PTHREAD_MUTEX_INITIALIZER;
+//::pthread_mutex_t ProducerCli::G_bplus_tree_Ptrmutex = PTHREAD_MUTEX_INITIALIZER;
 ::pthread_mutex_t ProducerCli::G_produce_Ptrmutex = PTHREAD_MUTEX_INITIALIZER;
 ConnectionInfo* ProducerCli::pTrackerServer;
 const char * ProducerCli::_notify_socket_path = fdfs2qq::SOCKET_PATH();
 const char * ProducerCli::item_socket_path = fdfs2qq::RECV_SOCKET_PATH();
 
-//::pthread_cond_t ProducerCli::G_Condition_variable;
+::pthread_cond_t ProducerCli::G_Condition_variable;
 bpt::bplus_tree ** ProducerCli::G_BptList;
 
+
+int ProducerCli::MAX_CONSUME_THREAD_NUM = fdfs2qq::GetCpuCoreCount;
 int ProducerCli::MAX_PRODUCER_THREAD_NUM = fdfs2qq::GetCpuCoreCount;
 
-fdfs2qq::concurrent_queue<fdfs2qq::StorageVolumnObject> ProducerCli::G_Volumns_Mq;
+fdfs2qq::concurrent_queue<string> ProducerCli::G_ItemProduce_Mq;
+fdfs2qq::concurrent_queue<std::string> ProducerCli::G_Volumns_Mq;
 void ProducerCli::Init() {
 	pTrackerServer = new ConnectionInfo;
 	strcpy(pTrackerServer->ip_addr, fdfs2qq::TRACKER_IP().c_str());
@@ -27,30 +30,29 @@ void ProducerCli::Init() {
 
 int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 		const string& data) {
-	const int connect_timeout = 20;
-//	const int g_fdfs_network_timeout = 20;
-	int * err_no = new int;
-	*err_no = conn_pool_connect_server(pCurrentServer, connect_timeout);
-
 	int result = tcpsenddata_nb(pCurrentServer->sock, (void*) data.c_str(),
 			data.length(), g_fdfs_network_timeout);
 	if (result != 0) {
 		fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 		"sync appender file, tcpsenddata_nb: %s error, "
-		"maybe disconnect? later?",
-		__LINE__, data.c_str());
+		"maybe disconnect? later? reason status %d :%s,",
+		__LINE__, data.c_str(), result,
+		STRERROR(result));
 	}
 }
 int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
-		const string& data, string& response) {
+		const string& data, RESPONSE_HEADER &ret) {
 	const int g_fdfs_network_timeout = 20;
 
-	int result = TransferByData(pCurrentServer, data);
-	size_t relen = sizeof(RESPONSE_HEADER);
-	RESPONSE_HEADER resp;
-	memset(&resp, 0, sizeof(resp));
+	const int connect_timeout = 20;
+	int * err_no = new int;
+	*err_no = conn_pool_connect_server(pCurrentServer, connect_timeout);
 
-	if ((result = tcprecvdata_nb(pCurrentServer->sock, &resp, sizeof resp,
+	int result = TransferByData(pCurrentServer, data);
+
+	RESPONSE_HEADER resp_tmp;
+
+	if ((result = tcprecvdata_nb(pCurrentServer->sock, &resp_tmp, sizeof(RESPONSE_HEADER),
 			g_fdfs_network_timeout)) != 0) {
 		fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 		"tracker server %s:%d, recv data fail, "
@@ -58,8 +60,7 @@ int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 		__LINE__, pCurrentServer->ip_addr, pCurrentServer->port, result,
 				STRERROR(result));
 	}
-	response.resize(relen);
-	memcpy(&response, &resp, relen);
+	memcpy(&ret, &resp_tmp, sizeof(RESPONSE_HEADER));
 	return result;
 }
 
@@ -87,13 +88,20 @@ void ProducerCli::TransferByFilename(ConnectionInfo* pCurrentServer,
 	string tmp;
 	std::ifstream t;
 	t.open(file_name.c_str(), std::ios::in | std::ios::binary);
+
+
+	const int g_fdfs_network_timeout = 20;
+	const int connect_timeout = 20;
+	int * err_no = new int;
+	*err_no = conn_pool_connect_server(pCurrentServer, connect_timeout);
+
 	while (std::getline(t, tmp)) {
 		tmp.erase(std::remove(tmp.begin(), tmp.end(), '\n'), tmp.end());
 		stringstream sm;
 		sm << fdfs2qq::CMD::LSM << fdfs2qq::BOX_MSG_SEPERATOR << tmp << "\n";
 		tmp = sm.str();
 		fdfs2qq::Logger::info(tmp);
-		int result = TransferByData(ProducerCli::pTrackerServer, tmp);
+		int result = TransferByData(pCurrentServer, tmp);
 		if (result != 0) {
 			fdfs2qq::Logger::info("send file fail");
 		}
@@ -114,17 +122,12 @@ void ProducerCli::LSMBinlog() {
 	fdfs2qq::Logger::info(out.str());
 
 	int index = 0;
-	//transfer
-//	ConnectionInfo* pCurrentServer = new ConnectionInfo;
-//	strcpy(pCurrentServer->ip_addr, "127.0.0.1");
-//	pCurrentServer->port = 45845;
 
 	//end transfer
 
 	for (std::map<string, string>::iterator i = ret.begin(); i != ret.end();
 			++i) {
 		int index_map = fdfs2qq::String2int(i->first);
-//		treePtr = *(G_BptList + index_map); // pointer to current tree
 
 		std::vector<StorageVolumnObject> sublist;
 		StorageConfig::getStoreFolderByOrder(sublist, i->first);
@@ -136,21 +139,9 @@ void ProducerCli::LSMBinlog() {
 				target = target.replace(target.find("/"),
 						std::string("/").length(), "_");
 			}
-//			string logerror = fdfs2qq::LOGPREFIX + "/" + target + "error.log";
-//			int value = -1; //error
-
-//			if (BptDelegate::InitBptFromFilesource(treePtr, logerror, value)
-//					> 0) {
-//				index++;
-//			}
 
 			string logsuccess = fdfs2qq::LOGPREFIX() + "/" + target
 					+ "success.log";
-//			value = 1; //default success
-//			if (BptDelegate::InitBptFromFilesource(treePtr, logsuccess, value)
-//					> 0) {
-//				index++;
-//			}
 
 			TransferByFilename(pTrackerServer, logsuccess);
 
@@ -163,7 +154,6 @@ void ProducerCli::LSMBinlog() {
 }
 
 void ProducerCli::ReadyProducer() {
-//	fdfs2qq::StorageConfig * objptr = new fdfs2qq::StorageConfig();
 
 	std::vector<fdfs2qq::StorageVolumnObject> v;
 	for (auto item : StorageConfig::VolumnsDict) {
@@ -173,10 +163,10 @@ void ProducerCli::ReadyProducer() {
 	//set queue
 	for (std::vector<fdfs2qq::StorageVolumnObject>::iterator it = v.begin();
 			it != v.end(); it++) {
-		G_Volumns_Mq.push(*it);
+		fdfs2qq::Logger::info(it->to_string());
+		G_Volumns_Mq.push(it->to_string());
 	}
 
-//	delete objptr;
 }
 
 /****
@@ -186,7 +176,11 @@ void ProducerCli::ReadyProducer() {
 //once
 void ProducerCli::ForkProducer() {
 
-	_ProducerMsg(G_Volumns_Mq.try_pop());
+	if(!G_Volumns_Mq.empty()){
+		auto str=G_Volumns_Mq.try_pop();
+		fdfs2qq::StorageVolumnObject ori_obj=StringToStorageVolumnObject(str);
+		_ProducerMsg(ori_obj);
+	}
 
 	//pool
 	int max_c = MAX_PRODUCER_THREAD_NUM;
@@ -201,30 +195,21 @@ void ProducerCli::ForkProducer() {
 }
 
 void* ProducerCli::WaitProducer(void*) {
-
-	std::string s;
-	s.clear();
-
 	while (true) {
-		pthread_mutex_lock(&G_produce_Ptrmutex);
-		pthread_cond_wait(&fdfs2qq::G_Condition_variable, &G_produce_Ptrmutex);
-		_ProducerMsg(G_Volumns_Mq.try_pop());
-		pthread_mutex_unlock(&G_produce_Ptrmutex);
-
-		if (G_Volumns_Mq.empty()) {
+		if(!G_Volumns_Mq.empty()){
+			auto str=G_Volumns_Mq.try_pop();
+			fdfs2qq::StorageVolumnObject ori_obj=StringToStorageVolumnObject(str);
+			_ProducerMsg(ori_obj);
+		}else{
 			perror("exit,for produce finished \n");
 			_ProducerStopMsg();
 			pthread_exit(NULL); // producer exit
+
 		}
 
 	}
 }
 void ProducerCli::_ProducerStopMsg() {
-//	fdfs2qq::OBJECT_ID_4FILE stopmsg;
-//	stopmsg.IS_PROGRAME_THREAD_STOP=true;
-//	for(int i=0;i<10;i++){
-//		fdfs2qq::G_ItemProduce_Mq.push(stopmsg);
-//	}
 }
 
 void ProducerCli::_ProducerMsg(
@@ -254,22 +239,25 @@ void ProducerCli::_ProducerMsg(
 					<< "\n";
 			tmp = sm.str();
 			fdfs2qq::Logger::info(tmp);
-			string resp;
-			int result = TransferByData(pTrackerServer, tmp, resp);
-			RESPONSE_HEADER header = StringToResponseObject(resp);
-//			memcpy(&header,&resp,resp.length());
+			const size_t bodysize=sizeof(RESPONSE_HEADER);
 
-			if (stoi(header.ext_status) == RESPONSE_STATUS::NEWONE) {
+			RESPONSE_HEADER header;
+			int result = TransferByData(pTrackerServer, tmp, header);
+			auto stssatus =stoi(header.ext_status);
+			std::string  status_str=std::string(header.ext_status);
+			if ( stssatus== RESPONSE_STATUS::REGISTSUCESS) {
 				fdfs2qq::StorageFileObject fileobj=ResponseObject2StorageFileObject(header);
-				fdfs2qq::G_ItemProduce_Mq.push(fileobj);
+				G_ItemProduce_Mq.push(fileobj.global_fileid);
 
-//				_SendUnixDomain(header);
-			} else {
 				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 				"tracker server %s:%d, recv data fail, "
-				"errno: %d, error info: %s, recv info :%s",
+				"errno: %d, error info: %s, status:%s, filid :%s ",
 				__LINE__, pTrackerServer->ip_addr, pTrackerServer->port, result,
-						STRERROR(result), resp.c_str());
+						STRERROR(result), header.ext_status,header.fileid);
+			} else {
+				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
+							"depelated, filid :%s ",
+							__LINE__, header.fileid);
 			}
 		} else {
 			fdfs2qq::Logger::error(
@@ -277,6 +265,92 @@ void ProducerCli::_ProducerMsg(
 		}
 	}
 
+}
+
+
+void ProducerCli::ForkConsumer() {
+
+	int max_c = MAX_CONSUME_THREAD_NUM;
+
+	Logger::debug("consume thread num" + std::to_string(max_c));
+	pthread_t pool[max_c];
+	//pthread_t log_thread;
+	for (int i = 0; i < max_c; i++) {
+		::pthread_create(&pool[i], NULL, &ProducerCli::ListenItemConsumerMq,
+				NULL);
+		::pthread_detach(pool[i]);
+	}
+}
+
+void* ProducerCli::ListenItemConsumerMq(void*) {
+	while (true) {
+		if (!G_ItemProduce_Mq.empty()) {
+			auto fileid=G_ItemProduce_Mq.try_pop();
+			auto str_fileid=std::string(fileid.c_str());
+			//const StorageFileObject msg();
+			//exit char????
+//			if(msg.IS_PROGRAME_THREAD_STOP==true){
+//				G_ItemProduce_Mq.push(msg);//push back
+//				fdfs::Logger::debug("exit,for consume finished \n");
+//				pthread_exit(NULL);// producer exit
+//				break;
+//			}else{
+			//normal consume
+		//	_ConsumerMsg(msg);
+//			}
+		} else {
+//			transfer::tcp::SendByUnixDomain(item_socket_path,"d");
+
+			pthread_cond_broadcast(& G_Condition_variable);	//wake up producer to working
+		}
+	}
+}
+void ProducerCli::_ConsumerMsg(const StorageFileObject &info) {
+
+	if (info.physical_store_path.empty()) {
+		return;
+	}
+	const std::string physical_fullpath = info.physical_store_path;
+	const std::string physical_fullpath_meta = info.physical_store_path + "-m";
+
+	//box build
+	std::string ret;
+	std::vector<std::string> input = { "overwrite_flag\t1", "c1\tv1", "d2\tv2" };
+	stringstream formstr;
+	formstr << "fileid\t" << info.global_fileid;
+	input.push_back(formstr.str());
+	formstr.str("");
+	formstr << "filehandle\t" << physical_fullpath;
+	input.push_back(formstr.str());
+	formstr.str("");
+	formstr << "file_meta\t" << physical_fullpath_meta << "-m";
+	input.push_back(formstr.str());
+
+	int size = input.size();
+	stringstream scout;
+	for (std::vector<std::string>::iterator it = input.begin();
+			it != input.end(); it++) {
+		scout << *it;
+		if (it + 1 != input.end())
+			scout << box::field::BOX_RECORD_SEPERATOR;
+	}
+	ret.assign(scout.str());
+	stringstream ss;
+	ss << ret << box::field::BOX_FIELD_SEPERATOR << ""
+			<< box::field::BOX_MSG_SEPERATOR;
+	const string origin_msg = ss.str();
+	int msgcount = 0;
+	std::vector<MessageItem> ret_s = SplitMsg(origin_msg.c_str(),
+			origin_msg.length(), msgcount);
+	//box build end
+
+	if (ret_s.size() > 0) {
+		writer::tencent::TencentStorageServiceWriter *wr =
+				new writer::tencent::TencentStorageServiceWriter;
+		auto rsp = wr->messageHeaderFormat(&ret_s[0])->messageBodyFormat(
+				&ret_s[0])->messageOutputStream();
+		wr->sprintf_response(rsp);
+	}
 }
 
 }
