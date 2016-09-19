@@ -64,9 +64,10 @@ void TrackerCli::StartRecvBinlog() {
 void* TrackerCli::_Recvbinlog(void*) {
 	struct msgInfo msg;
 	while (true) {
-		auto flg = QUEUE_MSG.try_pop(msg);
-		if (!flg)
+		if(QUEUE_MSG.empty()){
 			continue;
+		}
+		QUEUE_MSG.try_pop(msg);
 		fdfs2qq::Logger::info("get msg:" + msg.FileObject.global_fileid + "\n");
 
 		string fileid = msg.FileObject.global_fileid;
