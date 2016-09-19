@@ -31,10 +31,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <string>
-#include <limits.h>
-#include <unistd.h>
-
 
 #include <cstdio>
 #include <cstdlib>
@@ -61,6 +57,10 @@
 #include <functional>
 #include <algorithm>
 
+#include <string>
+#include <limits.h>
+#include <unistd.h>
+
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -81,6 +81,8 @@ namespace fdfs2qq{
 	const int GetCpuCoreCount=(int)sysconf(_SC_NPROCESSORS_CONF);
 
 	const static INIReader* _IReaderHandle=NULL;
+
+
 	const static std::string GetExePath() {
 		char result[PATH_MAX];
 		ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
@@ -88,9 +90,7 @@ namespace fdfs2qq{
 	}
 	const static INIReader* GetIniReader(){
 		if(_IReaderHandle==0){
-			std::string iniPath=GetExePath();
-			iniPath = iniPath.substr(0, iniPath.find_last_of("/\\"));
-			iniPath +="/test.ini";
+			std::string iniPath=GetExePath()+"/../test.ini";
 			_IReaderHandle=new  INIReader(iniPath);
 		}
 		return _IReaderHandle;

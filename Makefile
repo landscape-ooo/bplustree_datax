@@ -26,7 +26,7 @@ SHARED_OBJS +=$(W_SHARED_OBJS)
 
 
 CXX        = /opt/centos/devtoolset-1.1/root/usr/bin/g++ -g -std=c++11 -fPIC  
-CC        = /opt/centos/devtoolset-1.1/root/usr/bin/gcc -g -fPIC  
+CC        = /opt/centos/devtoolset-1.1/root/usr/bin/gcc -g -fPIC   -D_GNU_SOURCE
 CXX_COMPILE = $(CXX) -Werror -O2 
 COMPILE= $(CC) -Werror -O2 
 
@@ -68,9 +68,11 @@ test:
 #	$(CXX) $(CFLAGS) -o unittest.storageconf.exe $(dev_root)/box/unittest/test.storageconf.cc \
 		$(dev_root)/box/StorageConfig.cc libcommon.a   \
 		$(INC_PATH) $(LIB_PATH) $(LDFLAGS) $(GTEST_INC) $(GTEST_LIB)
+
+
+#		$(dev_root)/jobschedule/TrackerCli.cc \
 		
 	$(CXX) $(CFLAGS) -o unittest.cli_produce.exe  $(dev_root)/jobschedule/run.cc \
-		$(dev_root)/jobschedule/TrackerCli.cc \
 		$(dev_root)/jobschedule/ProducerCli.cc \
 		$(dev_root)/box/StorageConfig.cc libcommon.a ./src/store_photo_sdk/64/libopenapi.a  ./src/store_photo_sdk/64/libprotobuf.a  \
 		$(INC_PATH) $(LIB_PATH) /usr/lib64/libevent.so  $(LDFLAGS)  -lrt $(GTEST_INC) $(GTEST_LIB)  -lrt

@@ -101,7 +101,7 @@ private:
 
 	static ConnectionInfo* pTrackerServer;
 
-	static fdfs2qq::concurrent_queue<string> G_ItemProduce_Mq;
+	static fdfs2qq::ConcurrentQueueUnique_lock<string> G_ItemProduce_Mq;
 
 	static ::pthread_mutex_t G_produce_Ptrmutex;
 	static ::pthread_mutex_t G_bplus_tree_Ptrmutex;

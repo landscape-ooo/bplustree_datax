@@ -20,7 +20,7 @@ bpt::bplus_tree ** ProducerCli::G_BptList;
 int ProducerCli::MAX_CONSUME_THREAD_NUM = fdfs2qq::GetCpuCoreCount;
 int ProducerCli::MAX_PRODUCER_THREAD_NUM = fdfs2qq::GetCpuCoreCount;
 
-fdfs2qq::concurrent_queue<string> ProducerCli::G_ItemProduce_Mq;
+fdfs2qq::ConcurrentQueueUnique_lock<string> ProducerCli::G_ItemProduce_Mq;
 fdfs2qq::concurrent_queue<std::string> ProducerCli::G_Volumns_Mq;
 void ProducerCli::Init() {
 	pTrackerServer = new ConnectionInfo;
@@ -163,7 +163,6 @@ void ProducerCli::ReadyProducer() {
 	//set queue
 	for (std::vector<fdfs2qq::StorageVolumnObject>::iterator it = v.begin();
 			it != v.end(); it++) {
-		fdfs2qq::Logger::info(it->to_string());
 		G_Volumns_Mq.push(it->to_string());
 	}
 
@@ -177,7 +176,8 @@ void ProducerCli::ReadyProducer() {
 void ProducerCli::ForkProducer() {
 
 	if(!G_Volumns_Mq.empty()){
-		auto str=G_Volumns_Mq.try_pop();
+		string str;
+				G_Volumns_Mq.try_pop(str);
 		fdfs2qq::StorageVolumnObject ori_obj=StringToStorageVolumnObject(str);
 		_ProducerMsg(ori_obj);
 	}
@@ -197,7 +197,8 @@ void ProducerCli::ForkProducer() {
 void* ProducerCli::WaitProducer(void*) {
 	while (true) {
 		if(!G_Volumns_Mq.empty()){
-			auto str=G_Volumns_Mq.try_pop();
+			string str;
+			G_Volumns_Mq.try_pop(str);
 			fdfs2qq::StorageVolumnObject ori_obj=StringToStorageVolumnObject(str);
 			_ProducerMsg(ori_obj);
 		}else{
@@ -210,6 +211,7 @@ void* ProducerCli::WaitProducer(void*) {
 	}
 }
 void ProducerCli::_ProducerStopMsg() {
+//	}
 }
 
 void ProducerCli::_ProducerMsg(
@@ -235,7 +237,9 @@ void ProducerCli::_ProducerMsg(
 			string tmp(*it);
 			tmp.erase(std::remove(tmp.begin(), tmp.end(), '\n'), tmp.end());
 			stringstream sm;
-			sm << fdfs2qq::CMD::REGIST << fdfs2qq::BOX_MSG_SEPERATOR << tmp
+			sm << fdfs2qq::CMD::REGIST
+					<< fdfs2qq::BOX_MSG_SEPERATOR<<storageInfo.volumnstr
+					<<fdfs2qq::BOX_MSG_SEPERATOR<< tmp
 					<< "\n";
 			tmp = sm.str();
 			fdfs2qq::Logger::info(tmp);
@@ -244,11 +248,20 @@ void ProducerCli::_ProducerMsg(
 			RESPONSE_HEADER header;
 			int result = TransferByData(pTrackerServer, tmp, header);
 			auto stssatus =stoi(header.ext_status);
-			std::string  status_str=std::string(header.ext_status);
+//			std::string  status_str=std::string(header.ext_status);
 			if ( stssatus== RESPONSE_STATUS::REGISTSUCESS) {
 				fdfs2qq::StorageFileObject fileobj=ResponseObject2StorageFileObject(header);
-				G_ItemProduce_Mq.push(fileobj.global_fileid);
+				//G_ItemProduce_Mq.push(fileobj.global_fileid);
 
+//sync
+						fdfs2qq::Logger::info(fileobj.global_fileid);
+						fdfs2qq::Logger::info(fileobj.physical_store_path);
+						_ConsumerMsg(fileobj);
+
+
+
+
+		//end
 				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 				"tracker server %s:%d, recv data fail, "
 				"errno: %d, error info: %s, status:%s, filid :%s ",
@@ -285,19 +298,13 @@ void ProducerCli::ForkConsumer() {
 void* ProducerCli::ListenItemConsumerMq(void*) {
 	while (true) {
 		if (!G_ItemProduce_Mq.empty()) {
-			auto fileid=G_ItemProduce_Mq.try_pop();
+			string fileid;
+			G_ItemProduce_Mq.pop(fileid);
 			auto str_fileid=std::string(fileid.c_str());
-			//const StorageFileObject msg();
-			//exit char????
-//			if(msg.IS_PROGRAME_THREAD_STOP==true){
-//				G_ItemProduce_Mq.push(msg);//push back
-//				fdfs::Logger::debug("exit,for consume finished \n");
-//				pthread_exit(NULL);// producer exit
-//				break;
-//			}else{
-			//normal consume
-		//	_ConsumerMsg(msg);
-//			}
+			const StorageFileObject msg=Strfileid2StorageFileObject(str_fileid);
+			fdfs2qq::Logger::info(str_fileid);
+			fdfs2qq::Logger::info(msg.physical_store_path);
+			_ConsumerMsg(msg);
 		} else {
 //			transfer::tcp::SendByUnixDomain(item_socket_path,"d");
 

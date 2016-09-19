@@ -60,8 +60,11 @@ StorageVolumnObject StringToStorageVolumnObject(const string& msgstr);
 struct StorageFileObject{
 	StorageFileObject(const StorageVolumnObject& obj_parent,string fileid )\
 			:grpid(obj_parent.grpid),volumnid(obj_parent.volumnid),\
-			 volumnstr(obj_parent.volumnstr),subdir(obj_parent.subdir){
-		this->global_fileid=obj_parent.grpid+"/"+obj_parent.volumnid+"/"+obj_parent.subdir;
+			 volumnstr(obj_parent.volumnstr),subdir(obj_parent.subdir),global_fileid(fileid){
+		string prefix=obj_parent.volumnstr;
+		string finder=obj_parent.grpid+"/"+obj_parent.volumnid;
+		string phsic_path=fileid.replace(0,finder.length(),prefix);
+		this->physical_store_path=phsic_path;
 	}
 	//copy
 	StorageFileObject(const StorageFileObject& oth){
@@ -128,6 +131,7 @@ string ResponseObjectToString(const RESPONSE_HEADER& obj);
 StorageFileObject ResponseObject2StorageFileObject(const RESPONSE_HEADER& resp);
 RESPONSE_HEADER StorageFileObject2ResponseObject(const StorageFileObject& resp);
 
+StorageFileObject Strfileid2StorageFileObject(const string& fileid);
 
 
 

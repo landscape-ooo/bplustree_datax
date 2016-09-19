@@ -75,9 +75,14 @@ StorageVolumnObject StringToStorageVolumnObject(const string& msgstr){
 
 RESPONSE_HEADER StringToResponseObject(const string fileid,const string volumns,const string status){
 	RESPONSE_HEADER header;
+    memset(&header, 0, sizeof(header));
+    //auto lastchar= fileid.length()>FILEID_MAXLEN?FILEID_MAXLEN-1:fileid.length();
+    strncpy(header.fileid, fileid.c_str(),FILEID_MAXLEN);
+    header.fileid[FILEID_MAXLEN-1] = '\0'; // my_char_array contains "some"
 
-	memcpy(&header.fileid,fileid.c_str(),fileid.length());
-	memcpy(&header.ext_volumns,volumns.c_str(),volumns.length());
+    strncpy(header.ext_volumns, volumns.c_str(),FILEID_MAXLEN);
+    header.ext_volumns[FILEID_MAXLEN-1] = '\0'; // my_char_array contains "some"
+
 	memcpy(&header.ext_status,status.c_str(),status.length());
 	return header;
 }
@@ -96,15 +101,18 @@ string ResponseObjectToString(const RESPONSE_HEADER& obj){
 	return std::string(tmp,relen);
 }
 StorageFileObject ResponseObject2StorageFileObject(const RESPONSE_HEADER& resp){
-	string volumns(resp.ext_volumns,sizeof resp.ext_volumns);
-	string fileid(resp.fileid,sizeof resp.fileid);
+//	string volumns(resp.ext_volumns,sizeof resp.ext_volumns);
+//	string fileid(resp.fileid,sizeof resp.fileid);
+	string volumns(resp.ext_volumns);
+		string fileid(resp.fileid);
+
 	StorageFileObject obj(fileid,volumns);
 	return obj;
 }
 
-RESPONSE_HEADER StorageFileObject2ResponseObject(const StorageFileObject& resp){
-
-}
+//RESPONSE_HEADER StorageFileObject2ResponseObject(const StorageFileObject& resp){
+//
+//}
 
 
 const std::string StorageConfig::FDFS_STORAGE_CONF =
@@ -284,6 +292,31 @@ void StorageConfig::GetGlobalIdByFilelist(const vector<string>& \
 		gid_list.push_back(sm.str());
 	}
 }
+
+
+
+StorageFileObject Strfileid2StorageFileObject(const string& fileid){
+		StorageVolumnObject tmp_obj;
+		char delim = '/';
+		auto vec1 = fdfs2qq::split(fileid, delim);
+		string volumnid;
+		if (vec1.size()>0) {
+			tmp_obj.grpid = vec1[0];
+			volumnid=vec1[1];
+			tmp_obj.volumnid = volumnid;
+			tmp_obj.subdir = vec1[2]+std::string(&delim)+vec1[3] ;
+
+			auto st_VolumnsDict=StorageConfig::GetVolumnsDict();
+			if(st_VolumnsDict.find(volumnid)!=st_VolumnsDict.end()){
+				tmp_obj.volumnstr =st_VolumnsDict[volumnid];
+			}
+		}
+		StorageFileObject obj(tmp_obj,fileid);
+
+		return obj;
+
+}
+
 
 
 
