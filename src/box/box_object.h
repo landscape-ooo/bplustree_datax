@@ -51,6 +51,9 @@ public:
 	const int _MaxItemsCount;
 	HeaderItem* _Hptr;
 	int _MaxPtrLen;
+	~Header(){
+		delete []_Hptr;
+	}
 	Header():_MaxItemsCount(512),_MaxPtrLen(0){
 		_Hptr=new HeaderItem[this->_MaxItemsCount];
 	}
