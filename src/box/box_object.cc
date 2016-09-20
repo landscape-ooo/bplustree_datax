@@ -102,7 +102,7 @@ bool _splitMsg(const char* buffer, const int bufferLen, MessageItem &msg) {
 	}
 
 	//meta
-	{
+	//{
 		const char* buffer_start = buffer;
 		const char* buffer_data_start = strchr(buffer, BOX_FIELD_SEPERATOR);
 		const std::string buffer_meta_str(buffer_start,
@@ -112,15 +112,17 @@ bool _splitMsg(const char* buffer, const int bufferLen, MessageItem &msg) {
 
 		auto debug_size=metalist.size();
 
+auto count=0;
+
 		for (std::vector<HeaderItem>::iterator it =
 				metalist.begin(); it != metalist.end(); it++) {
+count++;
+auto s=*it;
+	//		msg.hd_ptr.setHeader(&(*it));
 
-			msg.hd_ptr.setHeader(&(*it));
-
-			if (std::string(it->key_v) == "filehandle") {
-				msg.bd_ptr.setBodyValue(std::string(it->value_v));
-				break;
-			}
+	//		if (std::string(it->key_v) == "filehandle") {
+	//			msg.bd_ptr.setBodyValue(std::string(it->value_v));
+	//		}
 		}
 
 
@@ -137,7 +139,7 @@ bool _splitMsg(const char* buffer, const int bufferLen, MessageItem &msg) {
 						bufferLen-(buffer_meta_end-buffer));
 			}
 		}
-	}
+	//}
 
 	return true;
 }

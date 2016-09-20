@@ -155,6 +155,7 @@ std::map<std::string,std::string> StorageConfig::GetVolumnsDict() {
 		string getfromreader=readerPtr->Get("",volumnstr,"");
 		if(getfromreader.empty()) break;
 
+		getfromreader+="/data";
 		string volumnsid_tmp;
 		if (volumnsid <= 9) {
 			volumnsid_tmp= "M0" + std::to_string(volumnsid);

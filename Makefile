@@ -35,8 +35,8 @@ LIB_PATH = -L/usr/local/lib
 OBJS =  $(dev_root)/store_photo_sdk/$(SYSTEM_BIT)/libopenapi.a $(dev_root)/store_photo_sdk/$(SYSTEM_BIT)/libprotobuf.a
 
 
-GTEST_INC =-I /usr/local/webserver/gtest/include/
-GTEST_LIB =/usr/local/webserver/gtest/lib/libgtest_main.a /usr/local/webserver/gtest/lib/libgtest.a
+#GTEST_INC =-I /usr/local/webserver/gtest/include/
+#GTEST_LIB =/usr/local/webserver/gtest/lib/libgtest_main.a /usr/local/webserver/gtest/lib/libgtest.a
 
 
 ALL_OBJS = $(SHARED_OBJS)

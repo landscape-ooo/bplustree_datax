@@ -322,17 +322,18 @@ void ProducerCli::_ConsumerMsg(const StorageFileObject &info) {
 
 	//box build
 	std::string ret;
-	std::vector<std::string> input = { "overwrite_flag\t1", "c1\tv1", "d2\tv2" };
+	std::vector<std::string> input = { "overwrite_flag\t0" };
 	stringstream formstr;
 	formstr << "fileid\t" << info.global_fileid;
 	input.push_back(formstr.str());
 	formstr.str("");
-	formstr << "filehandle\t" << physical_fullpath;
+	formstr << "file_meta\t" << physical_fullpath_meta ;
 	input.push_back(formstr.str());
 	formstr.str("");
-	formstr << "file_meta\t" << physical_fullpath_meta << "-m";
+	formstr << "filehandle\t" << physical_fullpath;
 	input.push_back(formstr.str());
 
+	input.push_back("c1\tv1");
 	int size = input.size();
 	stringstream scout;
 	for (std::vector<std::string>::iterator it = input.begin();

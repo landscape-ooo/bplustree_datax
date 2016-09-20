@@ -24,7 +24,7 @@ int main(int argc, const char *argv[]) {
 
 //		ProducerCli::Init();
 //		//fork producer
-		//ProducerCli::ForkConsumer();
+		ProducerCli::ForkConsumer();
 	}else if (casestr == "tracker") {
 		TrackerCli::InitBpt();
 		TrackerCli::StartRecvBinlog();
