@@ -116,13 +116,11 @@ auto count=0;
 
 		for (std::vector<HeaderItem>::iterator it =
 				metalist.begin(); it != metalist.end(); it++) {
-count++;
-auto s=*it;
-	//		msg.hd_ptr.setHeader(&(*it));
+			msg.hd_ptr.setHeader(&(*it));
 
-	//		if (std::string(it->key_v) == "filehandle") {
-	//			msg.bd_ptr.setBodyValue(std::string(it->value_v));
-	//		}
+			if (std::string(it->key_v) == "filehandle") {
+				msg.bd_ptr.setBodyValue(std::string(it->value_v));
+			}
 		}
 
 
