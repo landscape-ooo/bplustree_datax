@@ -61,7 +61,7 @@ bool BptDelegate::SearchBptByKey(const bpt::bplus_tree* treePtr,
 	}
 	Logger::info(
 			"find..." + std::string(((bpt::key_t*) keyptr)->k, 64) + "::"
-					+ std::to_string(*value) + ".....\n");
+					+ fdfs2qq::to_string(*value) + ".....\n");
 	return true;
 }
 }

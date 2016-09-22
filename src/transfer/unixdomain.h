@@ -14,9 +14,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "transfer/tcp/sockopt.h"
+#include "fastdfs/common/sockopt.h"
 
-#include "common/logger.h"
+#include "fastdfs/common/logger.h"
 namespace transfer {
 namespace tcp {
 

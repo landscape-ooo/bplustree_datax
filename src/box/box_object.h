@@ -17,7 +17,7 @@ using namespace fdfs2qq;
 using namespace std;
 const int BUFFER_KK_SIZE=128;
 const int BUFFER_KV_SIZE=1024;
-
+const int BUFFER_MAX_LINE=4096;
 
 struct HeaderItem {
 	bool isvalid;
@@ -48,16 +48,16 @@ struct HeaderItem {
 
 class Header{
 public:
-	const int _MaxItemsCount;
+	static const int _MaxItemsCount;
 	HeaderItem* _Hptr;
 	int _MaxPtrLen;
 	~Header(){
 		delete []_Hptr;
 	}
-	Header():_MaxItemsCount(512),_MaxPtrLen(0){
+	Header():_MaxPtrLen(0){
 		_Hptr=new HeaderItem[this->_MaxItemsCount];
 	}
-	Header(const Header &copy):_MaxItemsCount(512){
+	Header(const Header &copy){
 		_Hptr=new HeaderItem[copy._MaxItemsCount];
 		_MaxPtrLen=copy._MaxPtrLen;
 

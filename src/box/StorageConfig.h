@@ -8,7 +8,7 @@
 #ifndef SRC_FDFS_APPCONFIG_H_
 #define SRC_FDFS_APPCONFIG_H_
 #include "common/common_define.h"
-#include "common/logger.h"
+#include "fastdfs/common/logger.h"
 #include "common/INIReader.h"
 #include "common/tools.h"
 #include "common/mq.h"
@@ -40,6 +40,7 @@ enum CMD{
 
 
 struct StorageVolumnObject{
+	bool isvalid;
 	string grpid; //gjfs11
 	string volumnid; // M02
 	string volumnstr; // /data2/data
@@ -63,7 +64,8 @@ struct StorageFileObject{
 			 volumnstr(obj_parent.volumnstr),subdir(obj_parent.subdir),global_fileid(fileid){
 		string prefix=obj_parent.volumnstr;
 		string finder=obj_parent.grpid+"/"+obj_parent.volumnid;
-		string phsic_path=fileid.replace(0,finder.length(),prefix);
+		string tmp=global_fileid;
+		string phsic_path=tmp.replace(0,finder.length(),prefix);
 		this->physical_store_path=phsic_path;
 	}
 	//copy
@@ -73,6 +75,7 @@ struct StorageFileObject{
 		this->volumnid=oth.volumnid;
 		this->volumnstr=oth.volumnstr;
 		this->subdir=oth.subdir;
+		this->physical_store_path=oth.physical_store_path;
 	}
 	string global_fileid; //gjfs16/M02/26/79/CgEHQlbFlTCA0I56AAC3eom7WoI19.jpeg
 
@@ -110,6 +113,7 @@ struct StorageFileObject{
 				volumnid = other.volumnid;
 				subdir = other.subdir;
 				volumnstr = other.volumnstr;
+				this->physical_store_path=other.physical_store_path;
 			}
 			return *this;
 		}

@@ -352,8 +352,8 @@ void bplus_tree::remove_from_index(off_t offset, internal_node_t &node,
 bool bplus_tree::borrow_key(bool from_right, internal_node_t &borrower,
                             off_t offset)
 {
-    typedef typename internal_node_t::child_t child_t;
-
+    //typedef typename internal_node_t::child_t child_t;
+	typedef internal_node_t::child_t child_t;
     off_t lender_off = from_right ? borrower.next : borrower.prev;
     internal_node_t lender;
     map(&lender, lender_off);
@@ -409,8 +409,9 @@ bool bplus_tree::borrow_key(bool from_right, leaf_node_t &borrower)
 
     assert(lender.n >= meta.order / 2);
     if (lender.n != meta.order / 2) {
-        typename leaf_node_t::child_t where_to_lend, where_to_put;
-
+        //typename leaf_node_t::child_t where_to_lend, where_to_put;
+	 leaf_node_t::child_t where_to_lend;
+	 leaf_node_t::child_t   where_to_put;
         // decide offset and update parent's index key
         if (from_right) {
             where_to_lend = begin(lender);

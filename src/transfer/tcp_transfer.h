@@ -9,8 +9,8 @@
 #define SRC_TRANSFER_TRANSFER_TCP_H_
 
 extern "C" {
-#include "tcp/connection_pool.h"
-#include "tcp/sockopt.h"
+#include "fastdfs/common/connection_pool.h"
+#include "fastdfs/common/sockopt.h"
 }
 namespace transfer {
 namespace tcp {

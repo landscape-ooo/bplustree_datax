@@ -55,7 +55,7 @@ public:
 		//build split  key
 		for (int k = 0; k < disk_count; k++) {
 			char key_buffer[50];
-			string kstr = k >= 10 ? "0" + std::to_string(k) : std::to_string(k);
+			string kstr = k >= 10 ? "0" + fdfs2::to_string(k) : fdfs2qq::to_string(k);
 			int nkey_len = sprintf(key_buffer, key_formater.c_str(),
 					logprefix.c_str(), grpid.c_str(), kstr.c_str());
 			std::string key(key_buffer, nkey_len);

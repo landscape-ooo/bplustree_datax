@@ -5,8 +5,14 @@
  *      Author: a11
  */
 
+#pragma once
+
+
 #ifndef SRC_FDFS2QQ_COMMON_DEFINE_H_
 #define SRC_FDFS2QQ_COMMON_DEFINE_H_
+
+#include <event.h>
+
 #include <queue>
 #include <iostream>
 #include <stdexcept>
@@ -28,8 +34,14 @@
 #include <openssl/md5.h>
 #include <dirent.h>
 #include <fcntl.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/unistd.h>
+
 
 #include <string>
 #include <limits.h>
@@ -62,10 +74,6 @@
 #include <algorithm>
 
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <sys/unistd.h>
 
 #include "common/INIReader.h"
 using namespace std;
@@ -78,7 +86,8 @@ namespace fdfs2qq{
 
 	const int MAX_BUFFER_SIZE = 1024;
 
-	const int GetCpuCoreCount=(int)sysconf(_SC_NPROCESSORS_CONF);
+	//const int GetCpuCoreCount=(int)sysconf(_SC_NPROCESSORS_CONF);
+	const int GetCpuCoreCount=4;
 
 	const static INIReader* _IReaderHandle=NULL;
 	const static std::string GetExePath() {
@@ -101,6 +110,14 @@ namespace fdfs2qq{
 	inline const int TRACKER_PORT(){
 		return GetIniReader()->GetInteger("tracker","port",0);
 	}
+
+	inline const string CONSUME_IP(){
+			return GetIniReader()->Get("pub","host","");
+	}
+	inline const int CONSUME_PORT(){
+		return GetIniReader()->GetInteger("pub","port",0);
+	}
+
 	inline const int MAX_GRP_ID(){
 		return GetIniReader()->GetInteger("storage","group_count",0);
 	}

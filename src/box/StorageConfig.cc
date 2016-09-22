@@ -10,14 +10,14 @@ namespace fdfs2qq {
 
 
 
-StorageVolumnObject::StorageVolumnObject(const StorageVolumnObject& oth) {
+StorageVolumnObject::StorageVolumnObject(const StorageVolumnObject& oth):isvalid(true) {
 	grpid = oth.grpid;
 	volumnid = oth.volumnid;
 	subdir = oth.subdir;
 	volumnstr = oth.volumnstr;
 }
 StorageVolumnObject::StorageVolumnObject(const string& msgstr,
-		const string volumnstr = "") {
+		const string volumnstr = ""):isvalid(true) {
 	/*gjfstmp2/M00/00/19/CgP_ylcD2nqAAVr6AADKanPqNRs485.jpg*/
 	auto vec1 = fdfs2qq::split(msgstr, '/');
 	if (vec1.size() > 0) {
@@ -29,7 +29,7 @@ StorageVolumnObject::StorageVolumnObject(const string& msgstr,
 		}
 	}
 }
-StorageVolumnObject::StorageVolumnObject() {
+StorageVolumnObject::StorageVolumnObject():isvalid(false) {
 
 }
 StorageVolumnObject::~StorageVolumnObject() {
@@ -38,7 +38,7 @@ StorageVolumnObject::~StorageVolumnObject() {
 StorageVolumnObject& StorageVolumnObject::operator=(
 		StorageVolumnObject const& other) {
 
-	if (this != &other) {
+	if (other.isvalid) {
 		grpid = other.grpid;
 		volumnid = other.volumnid;
 		volumnstr = other.volumnstr;
@@ -65,6 +65,7 @@ StorageVolumnObject StringToStorageVolumnObject(const string& msgstr){
 	char delim = '\t';
 	auto vec1 = fdfs2qq::split(msgstr, delim);
 	if (vec1.size() ==4) {
+		obj.isvalid=true;
 		obj.grpid = vec1[0];
 		obj.volumnid = vec1[1];
 		obj.volumnstr = vec1[2];
@@ -151,16 +152,16 @@ std::map<std::string,std::string> StorageConfig::GetVolumnsDict() {
 	int volumnsid=0;
 	while(true){
 		const std::string find = "store_path";
-		string volumnstr=find+std::to_string(volumnsid);
+		string volumnstr=find+fdfs2qq::to_string(volumnsid);
 		string getfromreader=readerPtr->Get("",volumnstr,"");
 		if(getfromreader.empty()) break;
 
 		getfromreader+="/data";
 		string volumnsid_tmp;
 		if (volumnsid <= 9) {
-			volumnsid_tmp= "M0" + std::to_string(volumnsid);
+			volumnsid_tmp= "M0" + fdfs2qq::to_string(volumnsid);
 		}else{
-			volumnsid_tmp= "M" + std::to_string(volumnsid);
+			volumnsid_tmp= "M" + fdfs2qq::to_string(volumnsid);
 		}
 
 		dataVolumnsDic.insert(std::make_pair(volumnsid_tmp,getfromreader));
@@ -287,7 +288,9 @@ std::string StorageConfig::GET_GROUP_ID() {
 
 void StorageConfig::GetGlobalIdByFilelist(const vector<string>& \
 			filelist,const fdfs2qq::StorageVolumnObject& ret ,vector<string>& gid_list){
-	for(auto filename:filelist){
+	//for(auto filename:filelist){
+	for(auto it=filelist.begin();it!=filelist.end();it++){
+		auto filename(*it);
 		stringstream sm;
 		sm<<ret.grpid<<"/"<<ret.volumnid<<"/"<<ret.subdir<<"/"<<filename;
 		gid_list.push_back(sm.str());
@@ -301,16 +304,18 @@ StorageFileObject Strfileid2StorageFileObject(const string& fileid){
 		char delim = '/';
 		auto vec1 = fdfs2qq::split(fileid, delim);
 		string volumnid;
-		if (vec1.size()>0) {
+		if (vec1.size()>=4) {
 			tmp_obj.grpid = vec1[0];
 			volumnid=vec1[1];
 			tmp_obj.volumnid = volumnid;
-			tmp_obj.subdir = vec1[2]+std::string(&delim)+vec1[3] ;
+			tmp_obj.subdir = vec1[2]+std::string(1,delim)+vec1[3] ;
 
 			auto st_VolumnsDict=StorageConfig::GetVolumnsDict();
 			if(st_VolumnsDict.find(volumnid)!=st_VolumnsDict.end()){
 				tmp_obj.volumnstr =st_VolumnsDict[volumnid];
 			}
+		}else{
+			throw std::runtime_error("filid not parse");
 		}
 		StorageFileObject obj(tmp_obj,fileid);
 

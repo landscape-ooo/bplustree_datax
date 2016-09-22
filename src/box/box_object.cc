@@ -13,8 +13,7 @@
 namespace box { namespace field{
 
 
-
-
+const int Header::_MaxItemsCount=512;
 
 //
 //size_t _GetOccurCount(const string& s , const char seperator)

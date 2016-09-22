@@ -7,9 +7,9 @@
 
 #ifndef SRC_READER_TENCENTSTORAGESERVICEWRITER_H_
 #define SRC_READER_TENCENTSTORAGESERVICEWRITER_H_
-#include "box/box_object.h"
-#include "store_sdk_codec.h"
 #include "store_define.h"
+#include "store_sdk_codec.h"
+#include "box/box_object.h"
 #include "TencentOSSConf.h"
 #include "common/tools.h"
 #include "transfer/zerocopy_stream.h"

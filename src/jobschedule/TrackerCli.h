@@ -25,12 +25,23 @@
 #include <string>
 #include <functional>
 #include <algorithm>
+
+
+#include "ganji/ganji_global.h"
 #include "common/common_define.h"
 #include "common/mq.h"
 #include "common/BptDelegate.h"
 #include "box/StorageConfig.h"
 #include "box/box_object.h"
 #include "common/tools.h"
+
+#include "ganji/util/log/thread_fast_log.hpp"
+using namespace ganji::util::log::ThreadFastLog;
+namespace FastLog = ganji::util::log::ThreadFastLog;
+
+
+
+
 namespace jobschedule {
 using namespace  std;
 using namespace  fdfs2qq;
@@ -78,7 +89,7 @@ private:
 	static void _EventErrorCallback(struct bufferevent *bev,
             short what,
             void *arg);
-
+	static int _Setnonblock(int fd);
 	/****
 	 * <-------event  start
 	 */

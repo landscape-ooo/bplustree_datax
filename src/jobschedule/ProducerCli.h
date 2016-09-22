@@ -22,13 +22,18 @@
 #include <unistd.h>
 
 ///event end
+#include <queue>
+
 #include <pthread.h>
 #include <cctype>
 #include <string>
 #include <functional>
 #include <algorithm>
+
+
+#include "ganji/ganji_global.h"
 #include "common/common_define.h"
-#include "common/mq.h"
+//#include "common/concurrentqueue.h"
 #include "common/BptDelegate.h"
 #include "box/StorageConfig.h"
 #include "transfer/tcp_transfer.h"
@@ -36,6 +41,13 @@
 
 #include "box/box_object.h"
 #include "writer/TencentStorageServiceWriter.h"
+
+
+#include "ganji/util/log/thread_fast_log.hpp"
+using namespace ganji::util::log::ThreadFastLog;
+namespace FastLog = ganji::util::log::ThreadFastLog;
+
+
 
 namespace jobschedule {
 using namespace std;
@@ -100,8 +112,12 @@ private:
 
 
 	static ConnectionInfo* pTrackerServer;
+	static ConnectionInfo* pConsumerServer;
 
-	static fdfs2qq::ConcurrentQueueUnique_lock<string> G_ItemProduce_Mq;
+
+
+	static fdfs2qq::concurrent_queue<string> G_ItemProduce_Mq;
+	static fdfs2qq::concurrent_queue<StorageVolumnObject> G_Volumns_Mq;
 
 	static ::pthread_mutex_t G_produce_Ptrmutex;
 	static ::pthread_mutex_t G_bplus_tree_Ptrmutex;
@@ -110,7 +126,6 @@ private:
 	static bpt::bplus_tree ** G_BptList;
 
 
-	static fdfs2qq::concurrent_queue<string> G_Volumns_Mq;
 
 
 };

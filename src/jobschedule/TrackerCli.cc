@@ -29,7 +29,7 @@ void TrackerCli::InitBpt() {
 	//init memory
 	G_BptList = new bpt::bplus_tree*[TrackerCli::MAX_GRP_ID];
 	for (int i = 0; i < TrackerCli::MAX_GRP_ID; i++) { //init tree list
-		string dbname = std::to_string(i) + "_bplus_tree.db";
+		string dbname = fdfs2qq::to_string(i) + "_bplus_tree.db";
 		*(G_BptList + i) = new bpt::bplus_tree(dbname.c_str(), false);
 	}
 	}catch(std::exception &ex){
@@ -52,7 +52,7 @@ bpt::bplus_tree* TrackerCli::GetBptByMsginfo(const struct msgInfo& msg) {
 void TrackerCli::StartRecvBinlog() {
 
 	const int threadnum = fdfs2qq::GetCpuCoreCount;
-	fdfs2qq::Logger::info("cpuinfo:" + std::to_string(threadnum) + "\n");
+	fdfs2qq::Logger::info("cpuinfo:" + fdfs2qq::to_string(threadnum) + "\n");
 	pthread_t pool[threadnum];
 	//pthread_t log_thread;
 	for (int i = 0; i < threadnum; i++) {
@@ -74,8 +74,8 @@ void* TrackerCli::_Recvbinlog(void*) {
 		std::string keys = fileid;
 		if (keys.empty()){
 			fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
-					"NULL key , QUEUE_MSG size =%d "
-								,__LINE__,QUEUE_MSG.size());
+					"NULL key , QUEUE_MSG is empty "
+								,__LINE__);
 			continue;
 		}
 		bpt::bplus_tree* bptHandle = GetBptByMsginfo(msg);
@@ -170,7 +170,15 @@ int TrackerCli::_QueryHandle(const string msgstr) {
 /******
  * event start
  ******/
+int TrackerCli::_Setnonblock(int fd) {
+	int flags;
 
+	flags = fcntl(fd, F_GETFL);
+	if (flags < 0) return flags;
+	flags |= O_NONBLOCK;
+	if (fcntl(fd, F_SETFL, flags) < 0) return -1;
+	return 0;
+}
 void TrackerCli::RegisteEvent() {
 	int socketlisten;
 	struct sockaddr_in addresslisten;
@@ -193,27 +201,27 @@ void TrackerCli::RegisteEvent() {
 	addresslisten.sin_addr.s_addr = INADDR_ANY;
 	addresslisten.sin_port = (SERVER_PORT);
 
-	if (bind(socketlisten, (struct sockaddr *) &addresslisten,
+	if (::bind(socketlisten, (struct sockaddr *) &addresslisten,
 			sizeof(addresslisten)) < 0) {
 		fprintf(stderr, "Failed to bind");
 		throw std::runtime_error("Failed to bind");
 	}
 
-	if (listen(socketlisten, 5) < 0) {
+	if (::listen(socketlisten, 5) < 0) {
 		fprintf(stderr, "Failed to listen to socket");
 		throw std::runtime_error("Failed to listen to socket");
 	}
 
-	auto setnonblock = [](int fd) -> int //Cool!
-			{
-				int flags;
+//	auto setnonblock = [](int fd) -> int //Cool!
+//			{
+//				int flags;
+//
+//				flags = fcntl(fd, F_GETFL);
+//				flags |= O_NONBLOCK;
+//				fcntl(fd, F_SETFL, flags);
+//			}; //setnonblock is actually a variable, so don't forget the ;
 
-				flags = fcntl(fd, F_GETFL);
-				flags |= O_NONBLOCK;
-				fcntl(fd, F_SETFL, flags);
-			}; //setnonblock is actually a variable, so don't forget the ;
-
-	setnonblock(socketlisten);
+	_Setnonblock(socketlisten);
 
 	event_set(&accept_event, socketlisten, EV_READ | EV_PERSIST,
 			_EventAcceptCallback,
@@ -246,16 +254,16 @@ void TrackerCli::_EventAcceptCallback(int fd, short ev, void* arg) {
 			__LINE__, client_addr.sin_addr.s_addr,client_addr.sin_port);
 	}
 
-	auto setnonblock = [](int fd) -> int //Cool!
-			{
-				int flags;
+//	auto setnonblock = [](int fd) -> int //Cool!
+//			{
+//				int flags;
+//
+//				flags = fcntl(fd, F_GETFL);
+//				flags |= O_NONBLOCK;
+//				fcntl(fd, F_SETFL, flags);
+//			}; //setnonblock is actually a variable, so don't forget the ;
 
-				flags = fcntl(fd, F_GETFL);
-				flags |= O_NONBLOCK;
-				fcntl(fd, F_SETFL, flags);
-			}; //setnonblock is actually a variable, so don't forget the ;
-
-	setnonblock(client_fd);
+	_Setnonblock(client_fd);
 	client = new EventClient();
 	if (client == NULL) {
 		fdfs2qq::Logger::info("file: " __FILE__ ", line: %d, "
@@ -340,7 +348,7 @@ void TrackerCli::_EventReaderCallback(struct bufferevent* incoming, void* arg) {
 		}
 		RESPONSE_HEADER header;
 		memset(&header, 0, sizeof(header));
-		header = StringToResponseObject(fileid, volumnstr,std::to_string(ret));
+		header = StringToResponseObject(fileid, volumnstr,fdfs2qq::to_string(ret));
 		std::string rep_str = ResponseObjectToString(header);
 		evbuffer_add(output, rep_str.c_str(), rep_str.length());
 		fdfs2qq::Logger::info(
@@ -352,7 +360,7 @@ void TrackerCli::_EventReaderCallback(struct bufferevent* incoming, void* arg) {
 		break;
 	default:
 		evbuffer_add_printf(evreturn,
-				std::to_string(RESPONSE_STATUS::NOTFOUND).c_str());
+				fdfs2qq::to_string(RESPONSE_STATUS::NOTFOUND).c_str());
 		break;
 
 	}
@@ -373,5 +381,24 @@ void TrackerCli::_EventErrorCallback(struct bufferevent* bev, short what,
  * event  end
  *******/
 
+}
+
+
+
+
+
+
+
+int main(int argc, const char *argv[]) {
+	struct FastLogStat logstat = { kLogAll, kLogFatal, kLogSizeSplit };
+	FastLog::OpenLog(fdfs2qq::LOGPREFIX().c_str(), "fdfs2qq_tracker", 2048, &logstat,
+			NULL);
+
+	jobschedule::TrackerCli::InitBpt();
+	jobschedule::TrackerCli::StartRecvBinlog();
+	jobschedule::TrackerCli::RegisteEvent();
+
+
+	return 1;
 }
 
