@@ -40,9 +40,9 @@ void ProducerCli::Init() {
 
 int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 		const string& data) {
-	int result = tcpsenddata_nb(pCurrentServer->sock, (void*) data.c_str(),
-			data.length(), g_fdfs_network_timeout);
-	if (result != 0) {
+	int result ;
+	if((result=tcpsenddata_nb(pCurrentServer->sock, (void*) data.c_str(),
+			data.length(), g_fdfs_network_timeout)) != 0) {
 		fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 		"sync appender file, tcpsenddata_nb: %s error, "
 		"maybe disconnect? later? reason status %d :%s,",
@@ -57,8 +57,7 @@ int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 
 	const int connect_timeout = 20;
 	int errorno=0;
-	errorno = conn_pool_connect_server(pCurrentServer, connect_timeout);
-	if (errorno != 0) {
+	if((errorno = conn_pool_connect_server(pCurrentServer, connect_timeout))!= 0) {
 				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 				"tcpsenddata_nb connect error, "
 				"maybe disconnect? later? reason status %d :%s,",
@@ -111,8 +110,7 @@ void ProducerCli::TransferByFilename(ConnectionInfo* pCurrentServer,
 	const int g_fdfs_network_timeout = 20;
 	const int connect_timeout = 20;
 	int errorno;
-	errorno = conn_pool_connect_server(pCurrentServer, connect_timeout);
-	if (errorno != 0) {
+	if((conn_pool_connect_server(pCurrentServer, connect_timeout)) != 0) {
 				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 				"tcpsenddata_nb connect error, "
 				"maybe disconnect? later? reason status %d :%s,",
