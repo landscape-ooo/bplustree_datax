@@ -275,12 +275,10 @@ void ProducerCli::_ProducerMsg(
 
 			RESPONSE_HEADER header;
 			int result = TransferByData(pTrackerServer, tmp, header);
-			auto stssatus =stoi(header.ext_status);
+			auto stssatus =String2int(std::string(header.ext_status));
 			if ( stssatus== RESPONSE_STATUS::REGISTSUCESS) {
 				fdfs2qq::StorageFileObject fileobj=ResponseObject2StorageFileObject(header);
-				pthread_mutex_lock(&G_produce_Ptrmutex);
 				G_ItemProduce_Mq.push(fileobj.global_fileid);
-				pthread_mutex_unlock(&G_produce_Ptrmutex);
 
 		//end
 				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
