@@ -123,10 +123,10 @@ void ProducerCli::TransferByFilename(ConnectionInfo* pCurrentServer,
 		stringstream sm;
 		sm << fdfs2qq::CMD::LSM << fdfs2qq::BOX_MSG_SEPERATOR << tmp << "\n";
 		tmp = sm.str();
-		fdfs2qq::Logger::info(tmp);
+		//fdfs2qq::Logger::info(tmp);
 		int result = TransferByData(pCurrentServer, tmp);
 		if (result != 0) {
-			fdfs2qq::Logger::info("send file fail,reason %s",STRERROR(result));
+			fdfs2qq::Logger::error("send file fail,msg %s,reason %s",tmp.c_str(),STRERROR(result));
 		}
 	}
 
@@ -268,24 +268,28 @@ void ProducerCli::_ProducerMsg(
 					<<fdfs2qq::BOX_MSG_SEPERATOR<< tmp
 					<< "\n";
 			tmp = sm.str();
-			fdfs2qq::Logger::info(tmp);
 			const size_t bodysize=sizeof(RESPONSE_HEADER);
 
 			RESPONSE_HEADER header;
 			int result = TransferByData(pTrackerServer, tmp, header);
 			auto stssatus =String2int(std::string(header.ext_status));
 			if ( stssatus== RESPONSE_STATUS::REGISTSUCESS) {
-				fdfs2qq::StorageFileObject fileobj=ResponseObject2StorageFileObject(header);
-				G_ItemProduce_Mq.push(fileobj.global_fileid);
+				fdfs2qq::Logger::info("send tracker fileid:%s ,response status :%s",tmp.c_str(),header.ext_status);
 
+
+				fdfs2qq::StorageFileObject fileobj;
+				try{
+					fileobj=ResponseObject2StorageFileObject(header);
+					G_ItemProduce_Mq.push(fileobj.global_fileid);
+				}catch(std::exception &ex){
+
+					fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
+					"catch exception ,status :%s ,fileid:%s ,reason:%s ",
+					__LINE__, header.ext_status,header.fileid,ex.what());
+				}
 		//end
-				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
-				"tracker server %s:%d, recv data fail, "
-				"errno: %d, error info: %s, status:%s, filid :%s ",
-				__LINE__, pTrackerServer->ip_addr, pTrackerServer->port, result,
-						STRERROR(result), header.ext_status,header.fileid);
 			} else {
-				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
+				fdfs2qq::Logger::info("file: " __FILE__ ", line: %d, "
 							"depelated, filid :%s ",
 							__LINE__, header.fileid);
 			}
@@ -324,10 +328,6 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 			string str_fileid = std::string(fileid.c_str());
 			fdfs2qq::Logger::info(str_fileid);
 			TransferByData(pConsumerServer, str_fileid);
-		} else {
-//			transfer::tcp::SendByUnixDomain(item_socket_path,"d");
-
-			pthread_cond_broadcast(&G_Condition_variable); //wake up producer to working
 		}
 	}
 }
