@@ -29,7 +29,8 @@ StorageVolumnObject::StorageVolumnObject(const string& msgstr,
 		}
 	}
 }
-StorageVolumnObject::StorageVolumnObject():isvalid(false) {
+StorageVolumnObject::StorageVolumnObject():isvalid(false),
+			grpid(""),volumnid(""),volumnstr(""),subdir(""){
 
 }
 StorageVolumnObject::~StorageVolumnObject() {
@@ -39,6 +40,7 @@ StorageVolumnObject& StorageVolumnObject::operator=(
 		StorageVolumnObject const& other) {
 
 	if (other.isvalid) {
+		isvalid=true;
 		grpid = other.grpid;
 		volumnid = other.volumnid;
 		volumnstr = other.volumnstr;
