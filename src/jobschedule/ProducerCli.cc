@@ -322,13 +322,12 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 		string fileid;
 		if (!G_ItemProduce_Mq.empty()) {
 			flg = G_ItemProduce_Mq.try_pop(fileid);
+			if (flg&&!fileid.empty()) {
+				fdfs2qq::Logger::info("will consume send file:%s",fileid.c_str());
+				TransferByData(pConsumerServer, fileid);
+			}
 		}
 
-		if (!fileid.empty()) {
-			string str_fileid = std::string(fileid.c_str());
-			fdfs2qq::Logger::info(str_fileid);
-			TransferByData(pConsumerServer, str_fileid);
-		}
 	}
 }
 

@@ -580,8 +580,8 @@ int32_t  ThreadOpenLog(const char *thread_name, FastLogStat  *log_state, FastLog
   if (log_state->spec & kLogTTY) {
     fprintf(stderr, "Open log file %slog success!\n", thread_name);
   }
-  WriteLogEx(log_fd, kLogStart, "* Open thread log by----%s:%s\n===============================================", g_proc_name, thread_name);
-  WriteLogEx(log_fd, kLogWFStart, "* Open thread log by----%s:%s for wf\n======================================", g_proc_name, thread_name);
+//  WriteLogEx(log_fd, kLogStart, "* Open thread log by----%s:%s\n===============================================", g_proc_name, thread_name);
+//  WriteLogEx(log_fd, kLogWFStart, "* Open thread log by----%s:%s for wf\n======================================", g_proc_name, thread_name);
 
   return 0;
 }
