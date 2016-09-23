@@ -12,7 +12,7 @@ namespace jobschedule{
 /* Port to listen on. */
 const int ConsumerCli::SERVER_PORT = fdfs2qq::CONSUME_PORT();
 /* Connection backlog (# of backlogged connections to accept). */
-const int ConsumerCli::CONNECTION_BACKLOG = 8;
+const int ConsumerCli::CONNECTION_BACKLOG = fdfs2qq::CONNECTION_BACKLOG;
 /* Socket read and write timeouts, in seconds. */
 const int ConsumerCli::SOCKET_READ_TIMEOUT_SECONDS = fdfs2qq::G_FDFS_NETWORK_TIMEOUT;
 const int ConsumerCli::SOCKET_WRITE_TIMEOUT_SECONDS = fdfs2qq::G_FDFS_NETWORK_TIMEOUT;
@@ -117,13 +117,13 @@ void ConsumerCli::_On_accept(int fd, short ev, void *arg) {
 
 	client_fd = accept(fd, (struct sockaddr *)&client_addr, &client_len);
 	if (client_fd < 0) {
-		warn("accept failed");
+		fdfs2qq::Logger::info("accept failed");
 		return;
 	}
 
 	/* Set the client socket to non-blocking mode. */
 	if (_Setnonblock(client_fd) < 0) {
-		warn("failed to set client socket to non-blocking");
+		fdfs2qq::Logger::info("failed to set client socket to non-blocking");
 		close(client_fd);
 		return;
 	}
@@ -132,7 +132,7 @@ void ConsumerCli::_On_accept(int fd, short ev, void *arg) {
 	//if ((client = malloc(sizeof(*client))) == NULL) {
 	client_ptr= new client_t();
 	if (client_ptr == NULL) {
-		warn("failed to allocate memory for client state");
+		fdfs2qq::Logger::info("failed to allocate memory for client state");
 		close(client_fd);
 		return;
 	}
@@ -143,13 +143,13 @@ void ConsumerCli::_On_accept(int fd, short ev, void *arg) {
 	 * to initialize your application-specific attributes in the client struct. */
 
 	if ((client_ptr->output_buffer = evbuffer_new()) == NULL) {
-		warn("client output buffer allocation failed");
+		fdfs2qq::Logger::info("client output buffer allocation failed");
 		_CloseAndFreeClient(client_ptr);
 		return;
 	}
 
 	if ((client_ptr->evbase = event_base_new()) == NULL) {
-		warn("client event_base creation failed");
+		fdfs2qq::Logger::info("client event_base creation failed");
 		_CloseAndFreeClient(client_ptr);
 		return;
 	}
@@ -178,7 +178,7 @@ void ConsumerCli::_On_accept(int fd, short ev, void *arg) {
 	 * object here.
 	 */
 	if ((client_ptr->buf_ev = bufferevent_new(client_fd, &ConsumerCli::_Buffered_on_read, &ConsumerCli::_Buffered_on_write, &ConsumerCli::_Buffered_on_error, client_ptr)) == NULL) {
-		warn("client bufferevent creation failed");
+		fdfs2qq::Logger::info("client bufferevent creation failed");
 		_CloseAndFreeClient(client_ptr);
 		return;
 	}
@@ -194,7 +194,7 @@ void ConsumerCli::_On_accept(int fd, short ev, void *arg) {
 	//if ((job = malloc(sizeof(*job))) == NULL) {
 	job =new job_t;
 	if (job == NULL) {
-		warn("failed to allocate memory for job state");
+		fdfs2qq::Logger::info("failed to allocate memory for job state");
 		_CloseAndFreeClient(client_ptr);
 		return;
 	}
@@ -261,14 +261,14 @@ int ConsumerCli::RunServer(void) {
 	}
 
 	if ((_Bvbase_accept = event_base_new()) == NULL) {
-		perror("Unable to create socket accept event base");
+		fdfs2qq::Logger::error("Unable to create socket accept event base");
 		close(listenfd);
 		return 1;
 	}
 
 	/* Initialize work queue. */
 	if (workqueue_init(&_Workqueue, NUM_THREADS)) {
-		perror("Failed to create work queue");
+		fdfs2qq::Logger::error("Failed to create work queue");
 		close(listenfd);
 		workqueue_shutdown(&_Workqueue);
 		return 1;
@@ -300,16 +300,16 @@ int ConsumerCli::RunServer(void) {
  * server, causing runServer() to return.
  */
 void ConsumerCli::_KillServer(void) {
-	fprintf(stdout, "Stopping socket listener event loop.\n");
+	fdfs2qq::Logger::info("Stopping socket listener event loop.\n");
 	if (event_base_loopexit(_Bvbase_accept, NULL)) {
-		perror("Error shutting down server");
+		fdfs2qq::Logger::error("Error shutting down server");
 	}
-	fprintf(stdout, "Stopping workers.\n");
+	fdfs2qq::Logger::info( "Stopping workers.\n");
 	workqueue_shutdown(&_Workqueue);
 }
 
 void ConsumerCli::_Sighandler(int signal) {
-	fprintf(stdout, "Received signal %d: %s.  Shutting down.\n", signal, strsignal(signal));
+	fdfs2qq::Logger::info( "Received signal %d: %s.  Shutting down.\n", signal, strsignal(signal));
 	_KillServer();
 }
 
@@ -338,7 +338,7 @@ void ConsumerCli::_Buffered_on_read(struct bufferevent *bev, void *arg) {
 	trim_right(&data[0]);
 	const string fileid=std::string(&data[0]);
 //	const string fileid=std::string(&data[0],nbytes_chunk_total>box::field::BUFFER_MAX_LINE?box::field::BUFFER_MAX_LINE:nbytes_chunk_total);
-	fdfs2qq::Logger::error(fileid);
+	fdfs2qq::Logger::info(fileid);
 	_ConsumerMsg(fileid);
 
 

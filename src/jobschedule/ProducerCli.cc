@@ -319,7 +319,7 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 		if (!G_ItemProduce_Mq.empty()) {
 			flg = G_ItemProduce_Mq.try_pop(fileid);
 			if (flg&&!fileid.empty()) {
-				fdfs2qq::Logger::info("will consume send file:%s",fileid.c_str());
+				fdfs2qq::Logger::info(" send consume fileid::%s",fileid.c_str());
 
 
 				int errorno=0;
