@@ -10,14 +10,14 @@
 #include "ConsumerCli.h"
 namespace jobschedule{
 /* Port to listen on. */
-const int ConsumerCli::SERVER_PORT = 5555;
+const int ConsumerCli::SERVER_PORT = fdfs2qq::CONSUME_PORT();
 /* Connection backlog (# of backlogged connections to accept). */
 const int ConsumerCli::CONNECTION_BACKLOG = 8;
 /* Socket read and write timeouts, in seconds. */
-const int ConsumerCli::SOCKET_READ_TIMEOUT_SECONDS = 30;
-const int ConsumerCli::SOCKET_WRITE_TIMEOUT_SECONDS = 30;
+const int ConsumerCli::SOCKET_READ_TIMEOUT_SECONDS = fdfs2qq::G_FDFS_NETWORK_TIMEOUT;
+const int ConsumerCli::SOCKET_WRITE_TIMEOUT_SECONDS = fdfs2qq::G_FDFS_NETWORK_TIMEOUT;
 /* Number of worker threads.  Should match number of CPU cores reported in /proc/cpuinfo. */
-const int ConsumerCli::NUM_THREADS = 8;
+const int ConsumerCli::NUM_THREADS = GetCpuCoreCount;
 
 
 
