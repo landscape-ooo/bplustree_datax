@@ -42,7 +42,7 @@ int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 		const string& data) {
 	int result ;
 	if((result=tcpsenddata_nb(pCurrentServer->sock, (void*) data.c_str(),
-			data.length(), g_fdfs_network_timeout)) != 0) {
+			data.length(), fdfs2qq::G_FDFS_NETWORK_TIMEOUT)) != 0) {
 		fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 		"sync appender file, tcpsenddata_nb: %s error, "
 		"maybe disconnect? later? reason status %d :%s,",
@@ -53,11 +53,9 @@ int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 }
 int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 		const string& data, RESPONSE_HEADER &ret) {
-	const int g_fdfs_network_timeout = 20;
 
-	const int connect_timeout = 20;
 	int errorno=0;
-	if((errorno = conn_pool_connect_server(pCurrentServer, connect_timeout))!= 0) {
+	if((errorno = conn_pool_connect_server(pCurrentServer, fdfs2qq::CONNECT_TIMEOUT))!= 0) {
 				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 				"tcpsenddata_nb connect error, "
 				"maybe disconnect? later? reason status %d :%s,",
@@ -70,7 +68,7 @@ int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 	RESPONSE_HEADER resp_tmp;
 
 	if ((result = tcprecvdata_nb(pCurrentServer->sock, &resp_tmp, sizeof(RESPONSE_HEADER),
-			g_fdfs_network_timeout)) != 0) {
+			fdfs2qq::G_FDFS_NETWORK_TIMEOUT)) != 0) {
 		fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 		"tracker server %s:%d, recv data fail, "
 		"errno: %d, error info: %s.",
@@ -107,10 +105,8 @@ void ProducerCli::TransferByFilename(ConnectionInfo* pCurrentServer,
 	t.open(file_name.c_str(), std::ios::in | std::ios::binary);
 
 
-	const int g_fdfs_network_timeout = 20;
-	const int connect_timeout = 20;
 	int errorno;
-	if((conn_pool_connect_server(pCurrentServer, connect_timeout)) != 0) {
+	if((conn_pool_connect_server(pCurrentServer, fdfs2qq::CONNECT_TIMEOUT)) != 0) {
 				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 				"tcpsenddata_nb connect error, "
 				"maybe disconnect? later? reason status %d :%s,",
@@ -324,6 +320,17 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 			flg = G_ItemProduce_Mq.try_pop(fileid);
 			if (flg&&!fileid.empty()) {
 				fdfs2qq::Logger::info("will consume send file:%s",fileid.c_str());
+
+
+				int errorno=0;
+				if((errorno = conn_pool_connect_server(pConsumerServer, fdfs2qq::CONNECT_TIMEOUT))!= 0) {
+							fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
+							"tcpsenddata_nb connect error, "
+							"maybe disconnect? later? reason status %d :%s,",
+							__LINE__,  errorno,
+							STRERROR(errorno));
+				}
+
 				TransferByData(pConsumerServer, fileid);
 			}
 		}

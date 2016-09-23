@@ -138,7 +138,7 @@ namespace fdfs2qq{
 		}
 
 
-	 const int g_fdfs_network_timeout=20;
-
+	 const int G_FDFS_NETWORK_TIMEOUT=20;
+	 const int CONNECT_TIMEOUT=20;
 }
 #endif /* SRC_FDFS2QQ_COMMON_DEFINE_H_ */
