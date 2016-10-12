@@ -54,6 +54,21 @@ db_mongodb::~db_mongodb(){
 	mongoc_client_pool_push(_STATIC_POOL, _client);
 }
 
+bool  db_mongodb::isExistByPrimarykey(const char* uniq_id){
+	const int limit_c = 1;
+	int count;
+	char* str;
+	int flg;
+	bson_error_t error;
+
+	mongoc_collection_t*  local_collection = mongoc_client_get_collection(_client, _db_name, _collection_name);
+
+
+	bool exist= isExistByPrimarykey(local_collection,uniq_id);
+	mongoc_collection_destroy(_collection);
+
+	return exist;
+}
 
 bool  db_mongodb::isExistByPrimarykey(mongoc_collection_t* local_collection,const char* uniq_id){
 	const int limit_c = 1;
@@ -123,6 +138,11 @@ int db_mongodb::Upsert(const char* uniq_id, const char* value) {
 	mongoc_collection_destroy(_collection);
 	//mongoc_client_destroy (_client);
 	return ret_flg;
+}
+bool db_mongodb::Insert(const char* k, const char* v){
+	std::map<string,string> mdic;
+	mdic.insert(std::make_pair(std::string(k),std::string(v)));
+	return InsertBulk(mdic);
 }
 bool db_mongodb::InsertBulk(const std::map<string,string>& mdic){
 		mongoc_bulk_operation_t *bulk;

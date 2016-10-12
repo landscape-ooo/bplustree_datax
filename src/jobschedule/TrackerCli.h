@@ -27,7 +27,7 @@
 #include "common/common_define.h"
 #include "common/workqueue.h"
 #include "common/mq.h"
-#include "common/BptDelegate.h"
+#include "common/MongoDelegate.h"
 #include "common/tools.h"
 
 #include "box/StorageConfig.h"
@@ -76,8 +76,8 @@ typedef struct StructClient {
 msgInfo ParseString2MsgInfo(const string&,const string&);
 
 class TrackerCli {
-	static bpt::bplus_tree* treePtr;
-	static bpt::bplus_tree ** G_BptList;
+//	static bpt::bplus_tree* treePtr;
+//	static bpt::bplus_tree ** G_BptList;
 
 
 	static concurrent_queue<msgInfo> QUEUE_MSG;
@@ -90,7 +90,7 @@ public:
 
 private:
 
-	static bpt::bplus_tree* GetBptByMsginfo(const struct msgInfo& msg);
+//	static bpt::bplus_tree* GetBptByMsginfo(const struct msgInfo& msg);
 
 
 	static void* _ProcessRecvbinlog(void*) ;
@@ -125,7 +125,7 @@ private:
 
 private:
 	static ::pthread_mutex_t G_produce_Ptrmutex;
-	static ::pthread_mutex_t G_bplus_tree_Ptrmutex;
+//	static ::pthread_mutex_t G_bplus_tree_Ptrmutex;
 
 
 	static const int  SERVER_PORT ;

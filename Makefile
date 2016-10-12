@@ -12,6 +12,7 @@ $(dev_root)/third_part/fastdfs/common/http_func.o $(dev_root)/common/ini.o $(dev
 
 CXX_SHARED_OBJS = $(dev_root)/third_part/ganji/util/log/thread_fast_log.o $(dev_root)/common/object.o\
 $(dev_root)/common/tools.o $(dev_root)/common/bpt.o $(dev_root)/common/BptDelegate.o\
+$(dev_root)/common/bpt.o $(dev_root)/common/MongoDelegate.o\
 $(dev_root)/common/workqueue.o $(dev_root)/third_part/ganji/util/log/thread_fast_log.o
 
 CXX_SHARED_OBJS += $(dev_root)/box/box_object.o $(dev_root)/transfer/zerocopy_stream.o\
@@ -42,7 +43,7 @@ INC_PATH = -I/usr/local/include -I$(dev_root) \
 	
 LIB_PATH = -L/usr/local/lib 
 OBJS =  $(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/libopenapi.a $(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/libprotobuf.a
-OBJS +=  /
+OBJS += $(lib_addto)/mongo-c-driver-1.4.0/lib/libmongoc-1.0.so
 
 #GTEST_INC =-I /usr/local/webserver/gtest/include/
 #GTEST_LIB =/usr/local/webserver/gtest/lib/libgtest_main.a /usr/local/webserver/gtest/lib/libgtest.a
@@ -74,8 +75,7 @@ prog.exe: $(SHARED_OBJS)
 			$(dev_root)/jobschedule/ConsumerCli.cc \
 			$(dev_root)/box/StorageConfig.cc \
 			libcommon.a \
-			./src/third_part/store_photo_sdk/$(SYSTEM_BIT)/libopenapi.a  \
-			./src/third_part/store_photo_sdk/$(SYSTEM_BIT)/libprotobuf.a  \
+			$(OBJS)\
 			$(INC_PATH) \
 			$(LIB_PATH) \
 			/usr/lib64/libevent.so  \
@@ -86,8 +86,7 @@ prog.exe: $(SHARED_OBJS)
 				$(dev_root)/jobschedule/ProducerCli.cc \
 			$(dev_root)/box/StorageConfig.cc \
 			libcommon.a \
-			./src/third_part/store_photo_sdk/$(SYSTEM_BIT)/libopenapi.a  \
-			./src/third_part/store_photo_sdk/$(SYSTEM_BIT)/libprotobuf.a  \
+			$(OBJS)\
 			$(INC_PATH) \
 			$(LIB_PATH) \
 			/usr/lib64/libevent.so  \
@@ -98,8 +97,7 @@ prog.exe: $(SHARED_OBJS)
 			$(dev_root)/jobschedule/TrackerCli.cc \
 			$(dev_root)/box/StorageConfig.cc \
 			libcommon.a \
-			./src/third_part/store_photo_sdk/$(SYSTEM_BIT)/libopenapi.a  \
-			./src/third_part/store_photo_sdk/$(SYSTEM_BIT)/libprotobuf.a  \
+			$(OBJS)\
 			$(INC_PATH) \
 			$(LIB_PATH) \
 			/usr/lib64/libevent.so  \

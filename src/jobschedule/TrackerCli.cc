@@ -18,11 +18,11 @@ msgInfo ParseString2MsgInfo(const string& volumnstr,
 	return retinfo;
 }
 
-::pthread_mutex_t TrackerCli::G_bplus_tree_Ptrmutex;
+//::pthread_mutex_t TrackerCli::G_bplus_tree_Ptrmutex;
 concurrent_queue<msgInfo> TrackerCli::QUEUE_MSG;
 const int TrackerCli::SERVER_PORT = (fdfs2qq::TRACKER_PORT());
 const int TrackerCli::MAX_GRP_ID = fdfs2qq::MAX_GRP_ID();
-bpt::bplus_tree ** TrackerCli::G_BptList;
+//bpt::bplus_tree ** TrackerCli::G_BptList;
 
 /* Port to listen on. */
 /* Connection backlog (# of backlogged connections to accept). */
@@ -40,29 +40,24 @@ workqueue_t TrackerCli::_Workqueue;
 
 void TrackerCli::InitBpt() {
 	try {
-		//init memory
-		G_BptList = new bpt::bplus_tree*[TrackerCli::MAX_GRP_ID];
-		for (int i = 0; i < TrackerCli::MAX_GRP_ID; i++) { //init tree list
-			string dbname = fdfs2qq::to_string(i) + "_bplus_tree.db";
-			*(G_BptList + i) = new bpt::bplus_tree(dbname.c_str(), false);
-		}
+		MongoDelegate::InitBptFromFilesource();
 	} catch (std::exception &ex) {
 		fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 		"InitBpt function error, reason:%s ", __LINE__, ex.what());
 	}
 }
-bpt::bplus_tree* TrackerCli::GetBptByMsginfo(const struct msgInfo& msg) {
-	if (G_BptList != NULL) {
-		auto grpid = fdfs2qq::String2int(msg.FileObject.grpid);
-		return *(G_BptList + grpid);
-	}
-	fdfs2qq::Logger::error(
-			"file: " __FILE__ ", line: %d, "
-			"GetBptByMsginfo function error,null pointer recv, clientId:%s fileId:%s fileId_hash%s",
-			__LINE__, msg.clientId, msg.fileId.c_str(),
-			msg.fileId_hash.c_str());
-	return NULL;
-}
+//bpt::bplus_tree* TrackerCli::GetBptByMsginfo(const struct msgInfo& msg) {
+//	if (G_BptList != NULL) {
+//		auto grpid = fdfs2qq::String2int(msg.FileObject.grpid);
+//		return *(G_BptList + grpid);
+//	}
+//	fdfs2qq::Logger::error(
+//			"file: " __FILE__ ", line: %d, "
+//			"GetBptByMsginfo function error,null pointer recv, clientId:%s fileId:%s fileId_hash%s",
+//			__LINE__, msg.clientId, msg.fileId.c_str(),
+//			msg.fileId_hash.c_str());
+//	return NULL;
+//}
 
 void TrackerCli::ForkRecvBinlogHandle() {
 
@@ -92,24 +87,16 @@ void* TrackerCli::_ProcessRecvbinlog(void*) {
 			"NULL key , QUEUE_MSG is empty ", __LINE__);
 			continue;
 		}
-		bpt::bplus_tree* bptHandle = GetBptByMsginfo(msg);
-		bpt::value_t* v_pt = new int;
-		bpt::key_t* k_ptr = new bpt::key_t(keys.c_str());
 		bool findit = false;
-		auto plusptr = TrackerCli::GetBptByMsginfo(msg);
-		pthread_mutex_lock(&G_bplus_tree_Ptrmutex);
-		findit = BptDelegate::SearchBptByKey(plusptr, k_ptr, v_pt);
+		findit = MongoDelegate::SearchBptByKey(keys);
 		if (!findit) {
 			fdfs2qq::Logger::info("file: " __FILE__ ", line: %d, "
 			" key:%s  is empty , bpt insert  %d ", __LINE__, keys.c_str(),
 					msg.clientId);
-			BptDelegate::InsertAndUpdateBptfromData(plusptr, keys,
+			MongoDelegate::InsertAndUpdateBptfromData(keys,
 					msg.clientId);
 		}
-		pthread_mutex_unlock(&G_bplus_tree_Ptrmutex);
 
-		delete v_pt;
-		delete k_ptr;
 	}
 
 }
@@ -156,23 +143,13 @@ int TrackerCli::_QueryHandle(const string msgstr) {
 	if (fileid.empty()) {
 		return -1;
 	}
-	bpt::bplus_tree* bptHandle = GetBptByMsginfo(msg);
-	bpt::value_t* v_pt = new int;
-	bpt::key_t* k_ptr = new bpt::key_t(fileid.c_str());
 	bool findit = false;
-	auto plusptr = TrackerCli::GetBptByMsginfo(msg);
-	pthread_mutex_lock(&G_bplus_tree_Ptrmutex);
-	findit = BptDelegate::SearchBptByKey(plusptr, k_ptr, v_pt);
-	delete k_ptr;
-	delete v_pt;
-	pthread_mutex_unlock(&G_bplus_tree_Ptrmutex);
+	findit = MongoDelegate::SearchBptByKey(fileid);
 	if (!findit) {
 		fdfs2qq::Logger::info("file: " __FILE__ ", line: %d, "
 		"recv query req : %s error, query fail ",
 		__LINE__, msgstr.c_str());
-		pthread_mutex_lock(&G_bplus_tree_Ptrmutex);
-		BptDelegate::InsertAndUpdateBptfromData(plusptr, fileid, msg.clientId);
-		pthread_mutex_unlock(&G_bplus_tree_Ptrmutex);
+		MongoDelegate::InsertAndUpdateBptfromData(fileid, msg.clientId);
 		return 2;
 	} else {
 		fdfs2qq::Logger::info("file: " __FILE__ ", line: %d, "

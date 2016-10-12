@@ -50,6 +50,10 @@ public:
 	int Upsert(const char* k, const char* v);
 
 	/**
+	 * just insert
+	 */
+	bool Insert(const char* k, const char* v);
+	/**
 	 * @param
 	 *
 	 */
@@ -60,6 +64,12 @@ public:
 	 * @return
 	 */
 	bool  isExistByPrimarykey(mongoc_collection_t*,const char* );
+	/**
+	 * @return
+	 */
+	bool isExistByPrimarykey(const char*);
+
+
 private:
 	mongoc_client_t *_client;
 	mongoc_collection_t *_collection;
