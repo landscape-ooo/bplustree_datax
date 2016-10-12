@@ -12,20 +12,20 @@ namespace dao {
 
 
 
-const char * db_mongodb::_db_name ="gj_image";
-const char * db_mongodb::_collection_name ="gjfs_table";
-const char * db_mongodb::_index_key ="grpid";
-const char * db_mongodb::_MONGO_URL_STR="mongodb://10.1.252.164:27017/?minPoolSize=16&connectTimeoutMS=1000";
+//const char * db_mongodb::_db_name ="gj_image";
+//const char * db_mongodb::_collection_name ="gjfs_table";
+//const char * db_mongodb::_index_key ="grpid";
+//const char * db_mongodb::_MONGO_URL_STR="mongodb://10.1.252.164:27017/?minPoolSize=16&connectTimeoutMS=1000";
 
 
 
 mongoc_uri_t * db_mongodb::MG_URI_INFO;
 mongoc_client_pool_t * db_mongodb::_STATIC_POOL;
 
-//const char * db_mongodb::_db_name =fdfs2qq::MONGODB_DBNAME();
-//const char * db_mongodb::_collection_name =fdfs2qq::MONGODB_COLLECTION_NAME();
-//const char * db_mongodb::_index_key =fdfs2qq::MONGODB_INDEX();
-//const string db_mongodb::_MONGO_URL=fdfs2qq::MONGODB_URL();
+const char * db_mongodb::_db_name =fdfs2qq::GetByType("mongo.dbname");
+const char * db_mongodb::_collection_name =fdfs2qq::GetByType("mongo.collection");
+const char * db_mongodb::_index_key =fdfs2qq::GetByType("mongo.index_key");
+const char* db_mongodb::_MONGO_URL_STR=fdfs2qq::GetByType("mongo.url");
 
 
 void db_mongodb::InitMongoPool(){

@@ -7,7 +7,6 @@
 
 #pragma once
 
-
 #ifndef SRC_FDFS2QQ_COMMON_DEFINE_H_
 #define SRC_FDFS2QQ_COMMON_DEFINE_H_
 
@@ -42,11 +41,9 @@
 #include <sys/socket.h>
 #include <sys/unistd.h>
 
-
 #include <string>
 #include <limits.h>
 #include <unistd.h>
-
 
 #include <cstdio>
 #include <cstdlib>
@@ -73,73 +70,105 @@
 #include <functional>
 #include <algorithm>
 
-
-
 #include "common/INIReader.h"
 using namespace std;
-namespace fdfs2qq{
-	//k\tv{record}k2\tv2
-	const char BOX_KV_SEPERATOR='\x09';// \t
-	const char BOX_RECORD_SEPERATOR='\x01';//item split
-	const char BOX_FIELD_SEPERATOR='\x02';//file type split
-	const char BOX_MSG_SEPERATOR='\x03';//msg type split
+namespace fdfs2qq {
+//k\tv{record}k2\tv2
+const char BOX_KV_SEPERATOR = '\x09'; // \t
+const char BOX_RECORD_SEPERATOR = '\x01'; //item split
+const char BOX_FIELD_SEPERATOR = '\x02'; //file type split
+const char BOX_MSG_SEPERATOR = '\x03'; //msg type split
 
-	const int MAX_BUFFER_SIZE = 1024;
+const int MAX_BUFFER_SIZE = 1024;
 
-	//const int GetCpuCoreCount=(int)sysconf(_SC_NPROCESSORS_CONF);
-	const int GetCpuCoreCount=4;
+//const int GetCpuCoreCount=(int)sysconf(_SC_NPROCESSORS_CONF);
+const int GetCpuCoreCount = 4;
 
-	const static INIReader* _IReaderHandle=NULL;
-	const static std::string GetExePath() {
-		char result[PATH_MAX];
-		ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-		return std::string(result, (count > 0) ? count : 0);
+const static INIReader* _IReaderHandle = NULL;
+const static std::string GetExePath() {
+	char result[PATH_MAX];
+	ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+	return std::string(result, (count > 0) ? count : 0);
+}
+const static INIReader* GetIniReader() {
+	if (_IReaderHandle == 0) {
+		std::string iniPath = GetExePath();
+		iniPath = iniPath.substr(0, iniPath.find_last_of("/\\"));
+		iniPath += "/test.ini";
+		_IReaderHandle = new INIReader(iniPath);
 	}
-	const static INIReader* GetIniReader(){
-		if(_IReaderHandle==0){
-			std::string iniPath=GetExePath();
-			iniPath = iniPath.substr(0, iniPath.find_last_of("/\\"));
-			iniPath +="/test.ini";
-			_IReaderHandle=new  INIReader(iniPath);
-		}
-		return _IReaderHandle;
-	}
-	inline const string TRACKER_IP(){
-		return GetIniReader()->Get("tracker","host","");
-	}
-	inline const int TRACKER_PORT(){
-		return GetIniReader()->GetInteger("tracker","port",0);
-	}
+	return _IReaderHandle;
+}
+inline const string TRACKER_IP() {
+	return GetIniReader()->Get("tracker", "host", "");
+}
+inline const int TRACKER_PORT() {
+	return GetIniReader()->GetInteger("tracker", "port", 0);
+}
 
-	inline const string CONSUME_IP(){
-			return GetIniReader()->Get("pub","host","");
-	}
-	inline const int CONSUME_PORT(){
-		return GetIniReader()->GetInteger("pub","port",0);
-	}
+inline const string CONSUME_IP() {
+	return GetIniReader()->Get("pub", "host", "");
+}
+inline const int CONSUME_PORT() {
+	return GetIniReader()->GetInteger("pub", "port", 0);
+}
 
-	inline const int MAX_GRP_ID(){
-		return GetIniReader()->GetInteger("storage","group_count",0);
-	}
-	inline const std::string LOGPREFIX(){
-		return GetIniReader()->Get("logger","prefix","");
-	}
-	inline const std::string BINLOG_LOGPREFIX(){
-		return GetIniReader()->Get("logger","binlog_prefix","");
-	}
+inline const int MAX_GRP_ID() {
+	return GetIniReader()->GetInteger("storage", "group_count", 0);
+}
+inline const std::string LOGPREFIX() {
+	return GetIniReader()->Get("logger", "prefix", "");
+}
+inline const std::string BINLOG_LOGPREFIX() {
+	return GetIniReader()->Get("logger", "binlog_prefix", "");
+}
 
-	inline const char* SOCKET_PATH(){
-		auto ret= GetIniReader()->Get("unix","produce_file","");
-		return ret.c_str();
+inline const char* SOCKET_PATH() {
+	auto ret = GetIniReader()->Get("unix", "produce_file", "");
+	return ret.c_str();
+}
+inline const char* RECV_SOCKET_PATH() {
+	auto ret = GetIniReader()->Get("unix", "consume_file", "");
+	return ret.c_str();
+}
+inline const char* GetByType(const char* s) {
+	char delim = '.';
+	std::stringstream ss;
+	ss.str(s);
+	std::string item;
+	std::vector<string> elems;
+	while (std::getline(ss, item, delim)) {
+		elems.push_back(item);
 	}
-	inline const char* RECV_SOCKET_PATH(){
-			auto ret= GetIniReader()->Get("unix","consume_file","");
-			return ret.c_str();
-		}
-
-
-	 const int G_FDFS_NETWORK_TIMEOUT=20;
-	 const int CONNECT_TIMEOUT=20;
-	 const int CONNECTION_BACKLOG=511;//same as nginx
+	auto ret = GetIniReader()->Get(elems[0], elems[1], "");
+	return ret.c_str();
+}
+inline const string GetIniReaderStr(const char* s) {
+	char delim = '.';
+	std::stringstream ss;
+	ss.str(s);
+	std::string item;
+	std::vector<string> elems;
+	while (std::getline(ss, item, delim)) {
+		elems.push_back(item);
+	}
+	auto ret = GetIniReader()->Get(elems[0], elems[1], "");
+	return ret;
+}
+inline const int GetIniReaderInt(const char* s) {
+	char delim = '.';
+	std::stringstream ss;
+	ss.str(s);
+	std::string item;
+	std::vector<string> elems;
+	while (std::getline(ss, item, delim)) {
+		elems.push_back(item);
+	}
+	auto ret = GetIniReader()->GetInteger(elems[0], elems[1], 0);
+	return ret;
+}
+const int G_FDFS_NETWORK_TIMEOUT = 20;
+const int CONNECT_TIMEOUT = 20;
+const int CONNECTION_BACKLOG = 511; //same as nginx
 }
 #endif /* SRC_FDFS2QQ_COMMON_DEFINE_H_ */
