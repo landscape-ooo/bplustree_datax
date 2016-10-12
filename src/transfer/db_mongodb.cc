@@ -65,7 +65,7 @@ bool  db_mongodb::isExistByPrimarykey(const char* uniq_id){
 
 
 	bool exist= isExistByPrimarykey(local_collection,uniq_id);
-	mongoc_collection_destroy(_collection);
+	mongoc_collection_destroy(local_collection);
 
 	return exist;
 }
