@@ -41,10 +41,10 @@ StorageVolumnObject& StorageVolumnObject::operator=(
 
 	if (other.isvalid) {
 		isvalid=true;
-		grpid = other.grpid;
-		volumnid = other.volumnid;
-		volumnstr = other.volumnstr;
-		subdir = other.subdir;
+		grpid =std::string( other.grpid.c_str());
+		volumnid =std::string(  other.volumnid.c_str());
+		volumnstr = std::string( other.volumnstr.c_str());
+		subdir = std::string( other.subdir.c_str());
 	}
 	return *this;
 }

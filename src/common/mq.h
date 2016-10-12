@@ -21,6 +21,12 @@ private:
 	mutable ::pthread_mutex_t the_mutex;
 	::pthread_cond_t the_condition_variable;
 public:
+	int size() const {
+		pthread_mutex_lock(&the_mutex);
+		int size_v = the_queue.size();
+		pthread_mutex_unlock(&the_mutex);
+		return size_v;
+	}
 	void push(Data const& data) {
 
 		pthread_mutex_lock(&the_mutex);
@@ -57,12 +63,12 @@ public:
 			pthread_mutex_unlock(&the_mutex);
 			return false;
 		}
-try{
-		popped_value = the_queue.front();
-		the_queue.pop();
-}catch(std::exception &ex){
+		try{
+				popped_value = the_queue.front();
+				the_queue.pop();
+		}catch(std::exception &ex){
 
-}
+		}
 		pthread_mutex_unlock(&the_mutex);
 		return true;
 	}

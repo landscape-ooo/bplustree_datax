@@ -66,6 +66,11 @@ private:
 	static int MAX_CONSUME_THREAD_NUM;
 	static const char * _notify_socket_path;
 	static const char * item_socket_path;
+
+	static const  size_t MAX_SUBDIR_COUNTS;
+
+	static size_t INC_SUBDIR_COUNTS;
+
 public:
 	/****
 	 * ------>producer mq start
@@ -117,7 +122,7 @@ private:
 
 
 	static fdfs2qq::concurrent_queue<string> G_ItemProduce_Mq;
-	static fdfs2qq::concurrent_queue<StorageVolumnObject> G_Volumns_Mq;
+	static fdfs2qq::concurrent_queue<string> G_Volumns_Mq;
 
 	static ::pthread_mutex_t G_produce_Ptrmutex;
 	static ::pthread_mutex_t G_bplus_tree_Ptrmutex;

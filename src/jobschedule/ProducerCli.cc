@@ -12,6 +12,10 @@ const string ProducerCli::NULL_MSG_SIGNAL = "NULL MQ,NEED PUT MSG";
 ::pthread_cond_t ProducerCli::G_Condition_variable;
 
 
+const size_t ProducerCli::MAX_SUBDIR_COUNTS=StorageConfig::MAX_VOLUMNS_COUNT*65536;
+size_t ProducerCli::INC_SUBDIR_COUNTS=0;
+
+
 
 ConnectionInfo* ProducerCli::pTrackerServer=new ConnectionInfo;
 ConnectionInfo* ProducerCli::pConsumerServer=new ConnectionInfo;
@@ -25,7 +29,7 @@ int ProducerCli::MAX_CONSUME_THREAD_NUM = fdfs2qq::GetCpuCoreCount;
 int ProducerCli::MAX_PRODUCER_THREAD_NUM = fdfs2qq::GetCpuCoreCount;
 
 fdfs2qq::concurrent_queue<string> ProducerCli::G_ItemProduce_Mq;
-fdfs2qq::concurrent_queue<StorageVolumnObject> ProducerCli::G_Volumns_Mq;
+fdfs2qq::concurrent_queue<string> ProducerCli::G_Volumns_Mq;
 
 void ProducerCli::Init() {
 //	pTrackerServer = new ConnectionInfo;
@@ -187,10 +191,7 @@ void ProducerCli::ReadyProducer() {
 	//set queue
 	for (std::vector<fdfs2qq::StorageVolumnObject>::iterator it = v.begin();
 			it != v.end(); it++) {
-		pthread_mutex_lock(&G_produce_Ptrmutex);
-		//G_Volumns_Mq.push(it->to_string());
-		G_Volumns_Mq.push(*it);
-		pthread_mutex_unlock(&G_produce_Ptrmutex);
+		G_Volumns_Mq.push(it->to_string());
 	}
 
 }
@@ -201,10 +202,6 @@ void ProducerCli::ReadyProducer() {
 
 //once
 void ProducerCli::ForkProducer() {
-//		string str;
-//				G_Volumns_Mq.try_dequeue(str);
-//		fdfs2qq::StorageVolumnObject ori_obj=StringToStorageVolumnObject(str);
-//		_ProducerMsg(ori_obj);
 
 	//pool
 	int max_c = MAX_PRODUCER_THREAD_NUM;
@@ -213,7 +210,10 @@ void ProducerCli::ForkProducer() {
 
 	for (int i = 0; i < max_c; i++) {
 		::pthread_create(&pool[i], NULL, &ProducerCli::WaitProducer, NULL);
-		::pthread_detach(pool[i]);
+		//::pthread_detach(pool[i]);
+	}
+	for(int i=0;i<max_c;i++){
+		::pthread_join(pool[i],NULL);
 	}
 
 }
@@ -223,12 +223,24 @@ void* ProducerCli::WaitProducer(void*) {
 		bool flg=false;
 		StorageVolumnObject ori_obj;
 		if(!G_Volumns_Mq.empty()){
-			flg=G_Volumns_Mq.try_pop(ori_obj);
+			pthread_mutex_lock(&G_produce_Ptrmutex);
+			INC_SUBDIR_COUNTS++;
+			pthread_mutex_unlock(&G_produce_Ptrmutex);
+
+			std::string msg;
+			flg=G_Volumns_Mq.try_pop(msg);
+			ori_obj=StringToStorageVolumnObject(msg);
+			if(ori_obj.isvalid){
+					//fdfs2qq::StorageVolumnObject ori_obj=StringToStorageVolumnObject(str);
+					_ProducerMsg(ori_obj);
+			}
 		}
-		if(ori_obj.isvalid){
-				//fdfs2qq::StorageVolumnObject ori_obj=StringToStorageVolumnObject(str);
-				_ProducerMsg(ori_obj);
-		}
+		int size=G_Volumns_Mq.size();
+		pthread_mutex_lock(&G_produce_Ptrmutex);
+		pthread_mutex_unlock(&G_produce_Ptrmutex);
+		std::cout<<(INC_SUBDIR_COUNTS)<<"\t"<<size<<"\n";
+		if(INC_SUBDIR_COUNTS>=MAX_SUBDIR_COUNTS)break;
+
 	}
 }
 void ProducerCli::_ProducerStopMsg() {
@@ -238,6 +250,7 @@ void ProducerCli::_ProducerStopMsg() {
 void ProducerCli::_ProducerMsg(
 		const fdfs2qq::StorageVolumnObject &storageInfo) {
 	//ready mutex  -->is_finished_hash
+
 
 	vector<string> filelist, globalid_list;
 	StorageConfig::GetfileListOfStoragepath(
@@ -353,13 +366,16 @@ int main(int argc, const char *argv[]) {
 			NULL);
 
 	jobschedule::ProducerCli::LSMBinlog();
-	//fork producer
+	//fork cons
+	jobschedule::ProducerCli::ForkConsumer();
+
+
+	////		//fork producer
 	jobschedule::ProducerCli::ReadyProducer();
 	jobschedule::ProducerCli::ForkProducer();
 	//
-	////		ProducerCli::Init();
-	////		//fork producer
-	jobschedule::ProducerCli::ForkConsumer();
+	//sleep
+	::sleep(fdfs2qq::G_FDFS_NETWORK_TIMEOUT);
 
 	return 1;
 }

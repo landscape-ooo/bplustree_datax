@@ -1,7 +1,7 @@
 SYSTEM_BIT := $(shell getconf LONG_BIT)
 .SUFFIXES: .c .o .cc
 dev_root=./src
-
+lib_addto=/usr/local/webserver
 
 
 C_SHARED_OBJS =  $(dev_root)/third_part/fastdfs/common/connection_pool.o \
@@ -14,7 +14,8 @@ CXX_SHARED_OBJS = $(dev_root)/third_part/ganji/util/log/thread_fast_log.o $(dev_
 $(dev_root)/common/tools.o $(dev_root)/common/bpt.o $(dev_root)/common/BptDelegate.o\
 $(dev_root)/common/workqueue.o $(dev_root)/third_part/ganji/util/log/thread_fast_log.o
 
-CXX_SHARED_OBJS += $(dev_root)/box/box_object.o $(dev_root)/transfer/zerocopy_stream.o
+CXX_SHARED_OBJS += $(dev_root)/box/box_object.o $(dev_root)/transfer/zerocopy_stream.o\
+$(dev_root)/transfer/db_mongodb.o
 
 W_SHARED_OBJS = $(dev_root)/writer/TencentStorageServiceWriter.o
 
@@ -33,10 +34,15 @@ CC        = /usr/bin/gcc -g -fPIC   -D_GNU_SOURCE
 CXX_COMPILE = /usr/bin/g++ -g -std=c++0x -fPIC   
 COMPILE= /usr/bin/g++ -g -fPIC   -D_GNU_SOURCE
 
-INC_PATH = -I/usr/local/include -I$(dev_root) -I$(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/ -I$(dev_root)/third_part/
+INC_PATH = -I/usr/local/include -I$(dev_root) \
+	-I$(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/ \
+	-I$(dev_root)/third_part/\
+	-I$(lib_addto)/mongo-c-driver-1.4.0/include/libbson-1.0/\
+	-I$(lib_addto)/mongo-c-driver-1.4.0/include/libmongoc-1.0/
+	
 LIB_PATH = -L/usr/local/lib 
 OBJS =  $(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/libopenapi.a $(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/libprotobuf.a
-
+OBJS +=  /
 
 #GTEST_INC =-I /usr/local/webserver/gtest/include/
 #GTEST_LIB =/usr/local/webserver/gtest/lib/libgtest_main.a /usr/local/webserver/gtest/lib/libgtest.a
