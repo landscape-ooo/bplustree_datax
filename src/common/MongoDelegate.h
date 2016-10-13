@@ -9,6 +9,7 @@
 #define JOBSCHEDULE_FDFS2QQJOBSCHEDULE_H_
 #include <cstdlib>
 #include <sstream>
+#include <map>
 #include "common_define.h"
 #include "transfer/db_mongodb.h"
 #include "tools.h"
@@ -21,8 +22,9 @@ public:
 
 	static int InitBptFromFilesource( );
 
-	static void InsertAndUpdateBptfromData( const string& keyptr,
+	static bool InsertAndUpdateBptfromData( const string& keyptr,
 			const int value);
+	static bool InsertAndUpdateBptfromData( const map<string,string>&);
 
 	static bool SearchBptByKey(const string&)  ;
 

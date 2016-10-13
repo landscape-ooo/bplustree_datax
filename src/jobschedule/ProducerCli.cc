@@ -18,6 +18,7 @@ size_t ProducerCli::INC_SUBDIR_COUNTS=0;
 
 
 ConnectionInfo* ProducerCli::pTrackerServer=new ConnectionInfo;
+ConnectionInfo* ProducerCli::pBinlogTrackerServer=new ConnectionInfo;
 ConnectionInfo* ProducerCli::pConsumerServer=new ConnectionInfo;
 const char * ProducerCli::_notify_socket_path = fdfs2qq::SOCKET_PATH();
 const char * ProducerCli::item_socket_path = fdfs2qq::RECV_SOCKET_PATH();
@@ -35,6 +36,10 @@ void ProducerCli::Init() {
 //	pTrackerServer = new ConnectionInfo;
 	strcpy(pTrackerServer->ip_addr, fdfs2qq::TRACKER_IP().c_str());
 	pTrackerServer->port = fdfs2qq::TRACKER_PORT();
+
+	strcpy(pBinlogTrackerServer->ip_addr, fdfs2qq::BINGLOG_TRACKER_IP().c_str());
+	pBinlogTrackerServer->port = fdfs2qq::BINGLOG_TRACKER_PORT();
+
 
 //	pConsumerServer = new ConnectionInfo;
 	strcpy(pConsumerServer->ip_addr, fdfs2qq::CONSUME_IP().c_str());
@@ -118,16 +123,14 @@ void ProducerCli::TransferByFilename(ConnectionInfo* pCurrentServer,
 				STRERROR(errorno));
 	}
 
-	while (std::getline(t, tmp)) {
-		tmp.erase(std::remove(tmp.begin(), tmp.end(), '\n'), tmp.end());
-		stringstream sm;
-		sm << fdfs2qq::CMD::LSM << fdfs2qq::BOX_MSG_SEPERATOR << tmp << "\n";
-		tmp = sm.str();
-		//fdfs2qq::Logger::info(tmp);
-		int result = TransferByData(pCurrentServer, tmp);
-		if (result != 0) {
-			fdfs2qq::Logger::error("send file fail,msg %s,reason %s",tmp.c_str(),STRERROR(result));
-		}
+	int result;
+	int64_t total_send_bytes;
+	result = tcpsendfile(pCurrentServer->sock, file_name.c_str(), stat_buf.st_size,
+			fdfs2qq::G_FDFS_NETWORK_TIMEOUT, &total_send_bytes);
+
+	if (result != 0) {
+		fdfs2qq::Logger::error("send file fail,msg %s,reason %s", tmp.c_str(),
+				STRERROR(result));
 	}
 
 }
@@ -168,7 +171,7 @@ void ProducerCli::LSMBinlog() {
 			string logsuccess = fdfs2qq::LOGPREFIX() + "/" + target
 					+ "success.log";
 
-			TransferByFilename(pTrackerServer, logsuccess);
+			TransferByFilename(pBinlogTrackerServer, logsuccess);
 
 		}
 	}

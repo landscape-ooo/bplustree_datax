@@ -13,7 +13,7 @@ int MongoDelegate::InitBptFromFilesource() {
 	return 1;
 }
 
-void MongoDelegate::InsertAndUpdateBptfromData(const string &keyptr,
+bool MongoDelegate::InsertAndUpdateBptfromData(const string &keyptr,
 		const int value) {
 
 	auto value_t = fdfs2qq::to_string(value);
@@ -22,6 +22,15 @@ void MongoDelegate::InsertAndUpdateBptfromData(const string &keyptr,
 	ret_flg = ptr->Upsert(keyptr.c_str(), value_t.c_str());
 
 	delete ptr;
+	return ret_flg>0?true:false;
+}
+
+bool MongoDelegate::InsertAndUpdateBptfromData(const map<string,string> &bulklist) {
+
+	db_mongodb* ptr = new db_mongodb();
+	bool ret_flg = ptr->InsertBulk(bulklist);
+	delete ptr;
+	return ret_flg;
 }
 
 bool MongoDelegate::SearchBptByKey(const string& keyptr) {

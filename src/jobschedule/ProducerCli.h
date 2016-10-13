@@ -117,6 +117,7 @@ private:
 
 
 	static ConnectionInfo* pTrackerServer;
+	static ConnectionInfo* pBinlogTrackerServer;
 	static ConnectionInfo* pConsumerServer;
 
 

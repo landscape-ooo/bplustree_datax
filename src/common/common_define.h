@@ -105,7 +105,12 @@ inline const string TRACKER_IP() {
 inline const int TRACKER_PORT() {
 	return GetIniReader()->GetInteger("tracker", "port", 0);
 }
-
+inline const string BINGLOG_TRACKER_IP() {
+	return GetIniReader()->Get("tracker", "binlog_host", "");
+}
+inline const int BINGLOG_TRACKER_PORT() {
+	return GetIniReader()->GetInteger("tracker", "binlog_port", 0);
+}
 inline const string CONSUME_IP() {
 	return GetIniReader()->Get("pub", "host", "");
 }

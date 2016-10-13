@@ -45,14 +45,11 @@ LIB_PATH = -L/usr/local/lib
 OBJS =  $(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/libopenapi.a $(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/libprotobuf.a
 OBJS += $(lib_addto)/mongo-c-driver-1.4.0/lib/libmongoc-1.0.so
 
-#GTEST_INC =-I /usr/local/webserver/gtest/include/
-#GTEST_LIB =/usr/local/webserver/gtest/lib/libgtest_main.a /usr/local/webserver/gtest/lib/libgtest.a
 
 
 ALL_OBJS = $(SHARED_OBJS)
 
 LDFLAGS = -rdynamic  -lcrypto  -lstdc++  -lpthread  -D__CLOUDPIC_INTERFACE__  
-#LDFLAGS = -rdynamic   -lz -lcrypt -lnsl -lm -lssl -lcrypto  -lstdc++  -lpthread  -D__CLOUDPIC_INTERFACE__  -fpermissive
 .PHONY: all test clean
 
 all: $(SHARED_OBJS) prog.exe
@@ -68,9 +65,24 @@ all: $(SHARED_OBJS) prog.exe
 	$(CXX_COMPILE) -c -o $@ $<  $(INC_PATH) $(LDFLAGS)
 .o:
 	$(COMPILE) -o $@ $<  $(STATIC_OBJS) $(LIB_PATH) $(INC_PATH)
+
 prog.exe: $(SHARED_OBJS) 
 	ar cru libcommon.a $^
 	rm -f *.db
+	
+		
+		$(CXX) $(CFLAGS) -o unittest.cli_bulkTracker.exe   \
+			$(dev_root)/jobschedule/BinlogTrackerCli.cc \
+			$(dev_root)/box/StorageConfig.cc \
+			libcommon.a \
+			$(OBJS)\
+			$(INC_PATH) \
+			$(LIB_PATH) \
+			/usr/lib64/libevent.so  \
+			$(LDFLAGS)  -lrt  \
+			$(GTEST_INC) $(GTEST_LIB) 
+		
+	
 		$(CXX) $(CFLAGS) -o unittest.cli_consume.exe  \
 			$(dev_root)/jobschedule/ConsumerCli.cc \
 			$(dev_root)/box/StorageConfig.cc \
@@ -113,49 +125,7 @@ prog.exe: $(SHARED_OBJS)
 	cp -r unittest.*.exe unittest_bin/
 	rm -fr  ./*.exe
 	
-consume:
-	rm -f *.db
-		$(CXX) $(CFLAGS) -o unittest.cli_consume.exe  \
-			$(dev_root)/jobschedule/ConsumerCli.cc \
-			$(dev_root)/box/StorageConfig.cc \
-			libcommon.a \
-			./src/third_part/store_photo_sdk/$(SYSTEM_BIT)/libopenapi.a  \
-			./src/third_part/store_photo_sdk/$(SYSTEM_BIT)/libprotobuf.a  \
-			$(INC_PATH) \
-			$(LIB_PATH) \
-			/usr/lib64/libevent.so  \
-			$(LDFLAGS)  -lrt  \
-			$(GTEST_INC) $(GTEST_LIB) 
-		
-	if test ! -s "unittest_bin";\
-	then\
-		mkdir  unittest_bin;\
-	fi;	 
-	cp -r $(dev_root)/common/unittest/*.ini unittest_bin/
-	cp -r unittest.*.exe unittest_bin/
-	rm -fr  ./*.exe
-	
-produce:
-	rm -f *.db
-	$(CXX) $(CFLAGS) -o unittest.cli_produce.exe  \
-			$(dev_root)/jobschedule/ProducerCli.cc \
-		$(dev_root)/box/StorageConfig.cc \
-		libcommon.a \
-		./src/third_part/store_photo_sdk/$(SYSTEM_BIT)/libopenapi.a  \
-		./src/third_part/store_photo_sdk/$(SYSTEM_BIT)/libprotobuf.a  \
-		$(INC_PATH) \
-		$(LIB_PATH) \
-		/usr/lib64/libevent.so  \
-		$(LDFLAGS)  -lrt  \
-		$(GTEST_INC) $(GTEST_LIB) 
 
-	if test ! -s "unittest_bin";\
-	then\
-		mkdir  unittest_bin;\
-	fi;	 
-	cp -r $(dev_root)/common/unittest/*.ini unittest_bin/
-	cp -r unittest.*.exe unittest_bin/
-	rm -fr  ./*.exe		
 clean:
 	rm -f $(ALL_OBJS) $(ALL_PRGS) libcommon.a *.exe ./unittest *_bplus_tree.db core.*
 
