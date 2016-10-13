@@ -239,9 +239,6 @@ void* ProducerCli::WaitProducer(void*) {
 			}
 		}
 		int size=G_Volumns_Mq.size();
-		pthread_mutex_lock(&G_produce_Ptrmutex);
-		pthread_mutex_unlock(&G_produce_Ptrmutex);
-		std::cout<<(INC_SUBDIR_COUNTS)<<"\t"<<size<<"\n";
 		if(INC_SUBDIR_COUNTS>=MAX_SUBDIR_COUNTS)break;
 
 	}
