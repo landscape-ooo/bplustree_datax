@@ -17,7 +17,14 @@ using namespace fdfs2qq;
 using namespace std;
 const int BUFFER_KK_SIZE=128;
 const int BUFFER_KV_SIZE=1024;
+/**
+ * block length
+ */
 const int BUFFER_MAX_LINE=4096;
+/**
+ * block count
+ */
+const int BUFFER_MAX_COUNT=256;
 
 struct HeaderItem {
 	bool isvalid;

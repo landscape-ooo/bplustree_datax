@@ -454,15 +454,16 @@ void BinlogTrackerCli::_Sighandler(int signal) {
  */
 void BinlogTrackerCli::_Buffered_on_read(struct bufferevent *bev, void *arg) {
 	client_t *client = (client_t *) arg;
-	//const int MAXLEN=box::field::BUFFER_MAX_LINE;
+	const size_t maxbuffersize = box::field::BUFFER_MAX_LINE;
+	const int max_vectorsize=box::field::BUFFER_MAX_COUNT;
+	//const int MAXLEN=;
+	std::vector<string> reqlist;
 
 //	/* Copy the data from the input buffer to the output buffer in 4096-byte chunks.
 //	 * There is a one-liner to do the whole thing in one shot, but the purpose of this server
 //	 * is to show actual real-world reading and writing of the input and output buffers,
 //	 * so we won't take that shortcut here. */
 
-	const size_t maxbuffersize = 12;
-	const int max_vectorsize=5;
 	int count=0;
 	size_t eol_len = 0;
 
@@ -489,13 +490,14 @@ void BinlogTrackerCli::_Buffered_on_read(struct bufferevent *bev, void *arg) {
 			break;
 		}
 	}
-	char data[last_evbuffer_ptr.pos + 1];
-	int req_le = evbuffer_remove(bev->input, data, last_evbuffer_ptr.pos + 1);
+	if(last_evbuffer_ptr.pos>-1){
+		char data[last_evbuffer_ptr.pos + 1];
+		int req_le = evbuffer_remove(bev->input, data, last_evbuffer_ptr.pos + 1);
 
-	string msglist(&data[0],last_evbuffer_ptr.pos);
+		string msglist(&data[0],last_evbuffer_ptr.pos);
 
-	std::vector<string> reqlist=fdfs2qq::split(msglist,'\n');
-
+		reqlist=fdfs2qq::split(msglist,'\n');
+	}
 	if(!reqlist.empty()){
 		std::map <string,string> mdic;
 		const string client_id=GetIpInfo(client);
