@@ -94,7 +94,7 @@ const static INIReader* GetIniReader() {
 	if (_IReaderHandle == 0) {
 		std::string iniPath = GetExePath();
 		iniPath = iniPath.substr(0, iniPath.find_last_of("/\\"));
-		iniPath += "/test.ini";
+		iniPath += "/../etc/fdfs2qq.ini";
 		_IReaderHandle = new INIReader(iniPath);
 	}
 	return _IReaderHandle;
