@@ -100,10 +100,10 @@ const static INIReader* GetIniReader() {
 	return _IReaderHandle;
 }
 inline const string TRACKER_IP() {
-	return GetIniReader()->Get("tracker", "host", "");
+	return GetIniReader()->Get("tracker", "upsert_host", "");
 }
 inline const int TRACKER_PORT() {
-	return GetIniReader()->GetInteger("tracker", "port", 0);
+	return GetIniReader()->GetInteger("tracker", "upsert_port", 0);
 }
 inline const string BINGLOG_TRACKER_IP() {
 	return GetIniReader()->Get("tracker", "binlog_host", "");
@@ -112,10 +112,10 @@ inline const int BINGLOG_TRACKER_PORT() {
 	return GetIniReader()->GetInteger("tracker", "binlog_port", 0);
 }
 inline const string CONSUME_IP() {
-	return GetIniReader()->Get("pub", "host", "");
+	return GetIniReader()->Get("tracker", "consume_host", "");
 }
 inline const int CONSUME_PORT() {
-	return GetIniReader()->GetInteger("pub", "port", 0);
+	return GetIniReader()->GetInteger("tracker", "consume_port", 0);
 }
 
 inline const int MAX_GRP_ID() {

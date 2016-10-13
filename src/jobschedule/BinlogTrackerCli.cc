@@ -534,11 +534,11 @@ int main(int argc, const char *argv[]) {
 	FastLog::OpenLog(fdfs2qq::LOGPREFIX().c_str(), "fdfs2qq_tracker", 2048,
 			&logstat,
 			NULL);
-
+while(true){
 	jobschedule::BinlogTrackerCli::InitBpt();
 	jobschedule::BinlogTrackerCli::ForkRecvBinlogHandle();
 	jobschedule::BinlogTrackerCli::RunServer();
-
+}
 	return 1;
 }
 

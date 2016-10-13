@@ -17,9 +17,9 @@ size_t ProducerCli::INC_SUBDIR_COUNTS=0;
 
 
 
-ConnectionInfo* ProducerCli::pTrackerServer=new ConnectionInfo;
-ConnectionInfo* ProducerCli::pBinlogTrackerServer=new ConnectionInfo;
-ConnectionInfo* ProducerCli::pConsumerServer=new ConnectionInfo;
+ConnectionInfo* ProducerCli::pTrackerServer=NULL;
+ConnectionInfo* ProducerCli::pBinlogTrackerServer=NULL;
+ConnectionInfo* ProducerCli::pConsumerServer=NULL;
 const char * ProducerCli::_notify_socket_path = fdfs2qq::SOCKET_PATH();
 const char * ProducerCli::item_socket_path = fdfs2qq::RECV_SOCKET_PATH();
 
@@ -33,7 +33,11 @@ fdfs2qq::concurrent_queue<string> ProducerCli::G_ItemProduce_Mq;
 fdfs2qq::concurrent_queue<string> ProducerCli::G_Volumns_Mq;
 
 void ProducerCli::Init() {
-//	pTrackerServer = new ConnectionInfo;
+	pBinlogTrackerServer =new ConnectionInfo;
+	pTrackerServer = new ConnectionInfo;
+	pConsumerServer = new ConnectionInfo;
+
+
 	strcpy(pTrackerServer->ip_addr, fdfs2qq::TRACKER_IP().c_str());
 	pTrackerServer->port = fdfs2qq::TRACKER_PORT();
 
@@ -41,7 +45,6 @@ void ProducerCli::Init() {
 	pBinlogTrackerServer->port = fdfs2qq::BINGLOG_TRACKER_PORT();
 
 
-//	pConsumerServer = new ConnectionInfo;
 	strcpy(pConsumerServer->ip_addr, fdfs2qq::CONSUME_IP().c_str());
 	pConsumerServer->port = fdfs2qq::CONSUME_PORT();
 
