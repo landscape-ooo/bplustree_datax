@@ -121,8 +121,8 @@ install:
 	cp -fr unittest_bin/*.exe  ${INSTALL_DIR}/bin	
 	cp -fr config/*.ini  ${INSTALL_DIR}/etc	
 	cp -fr config/*.sh  ${INSTALL_DIR}/sbin	
-	rm -f $(ALL_OBJS) $(ALL_PRGS) libcommon.a *.exe ./unittest *_bplus_tree.db core.*
+	rm -fr $(ALL_OBJS) $(ALL_PRGS) libcommon.a *.exe ./unittest_bin *_bplus_tree.db core.*
 
 clean:
-	rm -f $(ALL_OBJS) $(ALL_PRGS) libcommon.a *.exe ./unittest *_bplus_tree.db core.*
+	rm -fr $(ALL_OBJS) $(ALL_PRGS) libcommon.a *.exe ./unittest_bin *_bplus_tree.db core.*
 
