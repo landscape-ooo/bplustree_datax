@@ -1,4 +1,5 @@
 SYSTEM_BIT := $(shell getconf LONG_BIT)
+
 .SUFFIXES: .c .o .cc
 dev_root=./src
 lib_addto=/usr/local/webserver
@@ -28,10 +29,10 @@ SHARED_OBJS +=$(W_SHARED_OBJS)
 
 
 
-CXX        = /usr/bin/g++ -g -std=c++0x -fPIC  
-CC        = /usr/bin/gcc -g -fPIC   -D_GNU_SOURCE
-CXX_COMPILE = /usr/bin/g++ -g -std=c++0x -fPIC   
-COMPILE= /usr/bin/g++ -g -fPIC   -D_GNU_SOURCE
+CXX        = /usr/bin/g++44 -g -std=c++0x -fPIC  
+CC        = /usr/bin/gcc44 -g -fPIC   -D_GNU_SOURCE
+CXX_COMPILE = /usr/bin/g++44 -g -std=c++0x -fPIC   
+COMPILE= /usr/bin/g++44 -g -fPIC   -D_GNU_SOURCE
 
 INC_PATH = -I/usr/local/include -I$(dev_root) \
 	-I$(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/ \
