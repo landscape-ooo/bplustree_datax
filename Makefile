@@ -16,8 +16,9 @@ $(dev_root)/common/tools.o $(dev_root)/common/bpt.o $(dev_root)/common/BptDelega
 $(dev_root)/common/bpt.o $(dev_root)/common/MongoDelegate.o\
 $(dev_root)/common/workqueue.o $(dev_root)/third_part/ganji/util/log/thread_fast_log.o
 
-CXX_SHARED_OBJS += $(dev_root)/box/box_object.o $(dev_root)/transfer/zerocopy_stream.o\
-$(dev_root)/transfer/db_mongodb.o
+CXX_SHARED_OBJS += $(dev_root)/box/box_object.o\
+$(dev_root)/transfer/db_mongodb.o\
+$(dev_root)/transfer/zerocopy_stream.o
 
 W_SHARED_OBJS = $(dev_root)/writer/TencentStorageServiceWriter.o
 
