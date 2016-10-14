@@ -13,11 +13,9 @@ $(dev_root)/third_part/fastdfs/common/http_func.o $(dev_root)/common/ini.o $(dev
 
 CXX_SHARED_OBJS = $(dev_root)/third_part/ganji/util/log/thread_fast_log.o $(dev_root)/common/object.o\
 $(dev_root)/common/tools.o $(dev_root)/common/bpt.o $(dev_root)/common/BptDelegate.o\
-$(dev_root)/common/bpt.o $(dev_root)/common/MongoDelegate.o\
 $(dev_root)/common/workqueue.o $(dev_root)/third_part/ganji/util/log/thread_fast_log.o
 
 CXX_SHARED_OBJS += $(dev_root)/box/box_object.o\
-$(dev_root)/transfer/db_mongodb.o\
 $(dev_root)/transfer/zerocopy_stream.o
 
 W_SHARED_OBJS = $(dev_root)/writer/TencentStorageServiceWriter.o
@@ -38,13 +36,11 @@ COMPILE= /usr/bin/g++44 -g -fPIC   -D_GNU_SOURCE
 INC_PATH = -I/usr/local/include -I$(dev_root) \
 	-I$(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/ \
 	-I$(dev_root)/third_part/\
-	-I$(lib_addto)/mongo-c-driver/include/libbson-1.0/\
-	-I$(lib_addto)/mongo-c-driver/include/libmongoc-1.0/\
 	-I$(lib_addto)/libevent2/include/
 	
 LIB_PATH = -L/usr/local/lib 
 OBJS =  $(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/libopenapi.a $(dev_root)/third_part/store_photo_sdk/$(SYSTEM_BIT)/libprotobuf.a
-OBJS += $(lib_addto)/mongo-c-driver/lib/libmongoc-1.0.so
+#OBJS += $(lib_addto)/mongo-c-driver/lib/libmongoc-1.0.so
 OBJS += $(lib_addto)/libevent2/lib/libevent.so 
 
 
@@ -70,16 +66,6 @@ all: $(SHARED_OBJS) prog.exe
 prog.exe: $(SHARED_OBJS) 
 	ar cru libcommon.a $^
 		
-	$(CXX) $(CFLAGS) -o cli_bulkTracker.exe   \
-		$(dev_root)/jobschedule/BinlogTrackerCli.cc \
-		$(dev_root)/box/StorageConfig.cc \
-		libcommon.a \
-		$(OBJS)\
-		$(INC_PATH) \
-		$(LIB_PATH) \
-		$(LDFLAGS)  -lrt  \
-		$(GTEST_INC) $(GTEST_LIB) 
-	
 
 	$(CXX) $(CFLAGS) -o cli_consume.exe  \
 		$(dev_root)/jobschedule/ConsumerCli.cc \
@@ -100,17 +86,6 @@ prog.exe: $(SHARED_OBJS)
 		$(LIB_PATH) \
 		$(LDFLAGS)  -lrt  \
 		$(GTEST_INC) $(GTEST_LIB) 
-
-	$(CXX) $(CFLAGS) -o cli_tracker.exe   \
-		$(dev_root)/jobschedule/TrackerCli.cc \
-		$(dev_root)/box/StorageConfig.cc \
-		libcommon.a \
-		$(OBJS)\
-		$(INC_PATH) \
-		$(LIB_PATH) \
-		$(LDFLAGS)  -lrt  \
-		$(GTEST_INC) $(GTEST_LIB) 
-
 		
 	if test ! -s "unittest_bin";\
 	then\
