@@ -8,7 +8,8 @@ string TencentStorageServiceWriter::_GetOptionalMapData(
 		return "";
 	if (mappingheader.find(key) == mappingheader.end()) {
 		if (must) {
-			throw std::runtime_error("Gak!must key "+key+ + " is null,pls check");
+			//throw std::runtime_error("Gak!must key "+key+ + " is null,pls check");
+			fdfs2qq::Logger::error("Gak!must key "+key+ + " is null,pls check");
 		}
 		return "";
 	}
@@ -133,9 +134,9 @@ bool TencentStorageServiceWriter::_decode_response(string& rsp,
 
 	if (retcode != 0 && retcode != -6102) {
 		char buffer[100];
-		int len = sprintf(buffer, "reqid %d, error: %d\n", reqid, retcode);
-		throw std::runtime_error("Gak!" + std::string(buffer, len));
-
+		int len = sprintf(buffer, "fileid %s ->reqid %d, error: %d\n",fileid.c_str(), reqid, retcode);
+		//throw std::runtime_error("Gak!" + std::string(buffer, len));
+		fdfs2qq::Logger::error("Gak!" + std::string(buffer, len));
 	}
 
 	unsigned chid, fid;
