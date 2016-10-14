@@ -97,8 +97,9 @@ install:
 	mkdir -p ${INSTALL_DIR}/bin ${INSTALL_DIR}/sbin ${INSTALL_DIR}/etc
 	cp -fr unittest_bin/*.exe  ${INSTALL_DIR}/bin	
 	cp -fr config/*  ${INSTALL_DIR}/etc     
-	chmod +x ${INSTALL_DIR}/sbin/*
 	rm -fr ${INSTALL_DIR}/etc/*.sh
+	cp -fr config/*.sh  ${INSTALL_DIR}/sbin     
+	chmod +x ${INSTALL_DIR}/sbin/*
 	rm -fr $(ALL_OBJS) $(ALL_PRGS) libcommon.a *.exe ./unittest_bin *_bplus_tree.db core.*
 
 clean:
