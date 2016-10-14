@@ -401,6 +401,7 @@ void ConsumerCli::_ConsumerMsg(const string  &infostr) {
 		auto rsp = wr->messageHeaderFormat(&ret_s[0])->messageBodyFormat(
 				&ret_s[0])->messageOutputStream();
 		wr->sprintf_response(rsp);
+		delete wr;
 	}
 }
 

@@ -110,6 +110,8 @@ string TencentStorageServiceWriter::messageOutputStream() {
 				TencentOSSConf::PORT);
 		transfer::tcp::client::send_req(cl->pCurrentServer, this->msgbodyStr);
 		auto rsp = transfer::tcp::client::recv_rsp(cl->pCurrentServer);
+
+		delete cl;
 		return rsp;
 	}else{
 		return std::string("");
@@ -146,9 +148,10 @@ bool TencentStorageServiceWriter::_decode_response(string& rsp,
 	_q.qq_retcode = retcode;
 	_q.retflag = 1;
 	if (retcode != 0) {
-		char* buffer;
+		//char* buffer;
+		char buffer[50];
 		int n;
-		buffer = (char*) malloc(50);
+		//buffer = (char*) malloc(50);
 		n = sprintf(buffer, "error in retcode,result retcode=\t%d", retcode);
 
 		_q.error_reason = std::string(buffer, n);

@@ -17,16 +17,21 @@ namespace tcp {
 class client {
 	const static int g_fdfs_network_timeout = 20;
 public:
+	client():pCurrentServer(new ConnectionInfo){
+
+	}
+	~client(){
+		delete pCurrentServer;
+	}
 	ConnectionInfo *pCurrentServer;
 	static void connect_sever(ConnectionInfo* &pCurrentServer,const string &ip,const string& port) {
-		if(!pCurrentServer){
-			pCurrentServer = new ConnectionInfo;
-		}
+//		if(!pCurrentServer){
+//			pCurrentServer = new ConnectionInfo;
+//		}
 		strcpy(pCurrentServer->ip_addr, ip.c_str());
 		pCurrentServer->port = std::stoi(port);
 
-		int * err_no = new int;
-		*err_no = conn_pool_connect_server(pCurrentServer, g_fdfs_network_timeout);
+		(conn_pool_connect_server(pCurrentServer, g_fdfs_network_timeout));
 
 		return ;
 	}
