@@ -111,6 +111,7 @@ string TencentStorageServiceWriter::messageOutputStream() {
 		transfer::tcp::client::send_req(cl->pCurrentServer, this->msgbodyStr);
 		auto rsp = transfer::tcp::client::recv_rsp(cl->pCurrentServer);
 
+		conn_pool_disconnect_server(cl->pCurrentServer);
 		delete cl;
 		return rsp;
 	}else{

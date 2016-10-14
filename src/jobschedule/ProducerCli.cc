@@ -67,12 +67,14 @@ int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 		const string& data, RESPONSE_HEADER &ret) {
 
 	int errorno=0;
-	if((errorno = conn_pool_connect_server(pCurrentServer, fdfs2qq::CONNECT_TIMEOUT))!= 0) {
-				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
-				"tcpsenddata_nb connect error, "
-				"maybe disconnect? later? reason status %d :%s,",
-				__LINE__,  errorno,
-				STRERROR(errorno));
+	if(pCurrentServer->sock < 0){ //reuse
+		if((errorno = conn_pool_connect_server(pCurrentServer, fdfs2qq::CONNECT_TIMEOUT))!= 0) {
+					fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
+					"tcpsenddata_nb connect error, "
+					"maybe disconnect? later? reason status %d :%s,",
+					__LINE__,  errorno,
+					STRERROR(errorno));
+		}
 	}
 
 	int result = TransferByData(pCurrentServer, data);
@@ -118,14 +120,15 @@ void ProducerCli::TransferByFilename(ConnectionInfo* pCurrentServer,
 
 
 	int errorno;
-	if((conn_pool_connect_server(pCurrentServer, fdfs2qq::CONNECT_TIMEOUT)) != 0) {
-				fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
-				"tcpsenddata_nb connect error, "
-				"maybe disconnect? later? reason status %d :%s,",
-				__LINE__,  errorno,
-				STRERROR(errorno));
+	if(pCurrentServer->sock < 0){ //reuse
+		if((conn_pool_connect_server(pCurrentServer, fdfs2qq::CONNECT_TIMEOUT)) != 0) {
+					fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
+					"tcpsenddata_nb connect error, "
+					"maybe disconnect? later? reason status %d :%s,",
+					__LINE__,  errorno,
+					STRERROR(errorno));
+		}
 	}
-
 	int result;
 	int64_t total_send_bytes;
 	result = tcpsendfile(pCurrentServer->sock, file_name.c_str(), stat_buf.st_size,
@@ -175,13 +178,16 @@ void ProducerCli::LSMBinlog() {
 					+ "success.log";
 
 			TransferByFilename(pBinlogTrackerServer, logsuccess);
-
 		}
 	}
 	char buffer[100];
 	string formater = "build finish ...total valid filecout=%d ";
 	int n_len = sprintf(buffer, formater.c_str(), index);
 	fdfs2qq::Logger::info(std::string(buffer, n_len));
+
+
+
+	conn_pool_disconnect_server(pBinlogTrackerServer);
 }
 
 void ProducerCli::ReadyProducer() {
@@ -311,6 +317,10 @@ void ProducerCli::_ProducerMsg(
 		}
 	}
 
+
+
+	conn_pool_disconnect_server(pTrackerServer);
+
 }
 
 //
@@ -348,6 +358,7 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 				}
 
 				TransferByData(pConsumerServer, fileid);
+				conn_pool_disconnect_server(pConsumerServer);
 			}
 		}
 
