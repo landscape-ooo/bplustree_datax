@@ -35,7 +35,6 @@ fdfs2qq::concurrent_queue<string> ProducerCli::G_Volumns_Mq;
 void ProducerCli::Init() {
 	pBinlogTrackerServer =new ConnectionInfo;
 	pTrackerServer = new ConnectionInfo;
-	pConsumerServer = new ConnectionInfo;
 
 
 	strcpy(pTrackerServer->ip_addr, fdfs2qq::TRACKER_IP().c_str());
@@ -43,10 +42,6 @@ void ProducerCli::Init() {
 
 	strcpy(pBinlogTrackerServer->ip_addr, fdfs2qq::BINGLOG_TRACKER_IP().c_str());
 	pBinlogTrackerServer->port = fdfs2qq::BINGLOG_TRACKER_PORT();
-
-
-	strcpy(pConsumerServer->ip_addr, fdfs2qq::CONSUME_IP().c_str());
-	pConsumerServer->port = fdfs2qq::CONSUME_PORT();
 
 }
 
@@ -345,6 +340,11 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 		if (!G_ItemProduce_Mq.empty()) {
 			flg = G_ItemProduce_Mq.try_pop(fileid);
 			if (flg&&!fileid.empty()) {
+
+				pConsumerServer = new ConnectionInfo;
+				strcpy(pConsumerServer->ip_addr, fdfs2qq::CONSUME_IP().c_str());
+				pConsumerServer->port = fdfs2qq::CONSUME_PORT();
+
 				fdfs2qq::Logger::info(" send consume fileid::%s",fileid.c_str());
 
 
@@ -359,6 +359,8 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 
 				TransferByData(pConsumerServer, fileid);
 				conn_pool_disconnect_server(pConsumerServer);
+
+				delete pConsumerServer;
 			}
 		}
 
