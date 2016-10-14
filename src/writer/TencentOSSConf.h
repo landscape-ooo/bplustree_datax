@@ -8,12 +8,11 @@
 #ifndef SRC_WRITER_OBJECTSERVICE_TENCENTOSSCONF_H_
 #define SRC_WRITER_OBJECTSERVICE_TENCENTOSSCONF_H_
 #include <ctime>
-
 #include "common/tools.h"
 #include "transfer/tcp_transfer.h"
 namespace writer{ namespace tencent{ namespace TencentOSSConf{
-	const   string IP="10.126.94.88";
-	const   string PORT="13000";
+	const   string IP=fdfs2qq::GetIniReaderStr("tencent_pic.host");
+	const   string PORT=fdfs2qq::GetIniReaderStr("tencent_pic.port");
 }}}
 
 namespace writer{namespace tencent{
