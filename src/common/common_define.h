@@ -172,8 +172,8 @@ inline const int GetIniReaderInt(const char* s) {
 	auto ret = GetIniReader()->GetInteger(elems[0], elems[1], 0);
 	return ret;
 }
-const int G_FDFS_NETWORK_TIMEOUT = 20;
-const int CONNECT_TIMEOUT = 20;
+const int G_FDFS_NETWORK_TIMEOUT = 2000;
+const int CONNECT_TIMEOUT = 2000;
 const int CONNECTION_BACKLOG = 511; //same as nginx
 }
 #endif /* SRC_FDFS2QQ_COMMON_DEFINE_H_ */

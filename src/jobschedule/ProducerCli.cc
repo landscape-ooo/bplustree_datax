@@ -33,15 +33,6 @@ fdfs2qq::concurrent_queue<string> ProducerCli::G_ItemProduce_Mq;
 fdfs2qq::concurrent_queue<string> ProducerCli::G_Volumns_Mq;
 
 void ProducerCli::Init() {
-	pBinlogTrackerServer =new ConnectionInfo;
-	pTrackerServer = new ConnectionInfo;
-
-
-	strcpy(pTrackerServer->ip_addr, fdfs2qq::TRACKER_IP().c_str());
-	pTrackerServer->port = fdfs2qq::TRACKER_PORT();
-
-	strcpy(pBinlogTrackerServer->ip_addr, fdfs2qq::BINGLOG_TRACKER_IP().c_str());
-	pBinlogTrackerServer->port = fdfs2qq::BINGLOG_TRACKER_PORT();
 
 }
 
@@ -55,6 +46,7 @@ int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 		"maybe disconnect? later? reason status %d :%s,",
 		__LINE__, data.c_str(), result,
 		STRERROR(result));
+		return -1;
 	}
 	return result;
 }
@@ -62,17 +54,21 @@ int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 		const string& data, RESPONSE_HEADER &ret) {
 
 	int errorno=0;
-	if(pCurrentServer->sock < 0){ //reuse
+	if(pCurrentServer->sock <= 0){ //reuse
 		if((errorno = conn_pool_connect_server(pCurrentServer, fdfs2qq::CONNECT_TIMEOUT))!= 0) {
 					fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 					"tcpsenddata_nb connect error, "
 					"maybe disconnect? later? reason status %d :%s,",
 					__LINE__,  errorno,
 					STRERROR(errorno));
+					return -1;
 		}
 	}
 
 	int result = TransferByData(pCurrentServer, data);
+	if(result<0){
+		return -1;
+	}
 
 	RESPONSE_HEADER resp_tmp;
 
@@ -83,6 +79,7 @@ int ProducerCli::TransferByData(ConnectionInfo* pCurrentServer,
 		"errno: %d, error info: %s.",
 		__LINE__, pCurrentServer->ip_addr, pCurrentServer->port, result,
 				STRERROR(result));
+		return -1;
 	}
 	memcpy(&ret, &resp_tmp, sizeof(RESPONSE_HEADER));
 	return result;
@@ -115,13 +112,14 @@ void ProducerCli::TransferByFilename(ConnectionInfo* pCurrentServer,
 
 
 	int errorno;
-	if(pCurrentServer->sock < 0){ //reuse
+	if(pCurrentServer->sock <= 0){ //reuse
 		if((conn_pool_connect_server(pCurrentServer, fdfs2qq::CONNECT_TIMEOUT)) != 0) {
 					fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 					"tcpsenddata_nb connect error, "
 					"maybe disconnect? later? reason status %d :%s,",
 					__LINE__,  errorno,
 					STRERROR(errorno));
+					return ;
 		}
 	}
 	int result;
@@ -138,7 +136,11 @@ void ProducerCli::TransferByFilename(ConnectionInfo* pCurrentServer,
 void ProducerCli::LSMBinlog() {
 
 	//
-	Init();
+//	Init();
+	pBinlogTrackerServer =new ConnectionInfo;
+	strcpy(pBinlogTrackerServer->ip_addr, fdfs2qq::BINGLOG_TRACKER_IP().c_str());
+	pBinlogTrackerServer->port = fdfs2qq::BINGLOG_TRACKER_PORT();
+
 	//simulat all filepath
 
 	fdfs2qq::Logger::debug("start cal keylist");
@@ -183,6 +185,7 @@ void ProducerCli::LSMBinlog() {
 
 
 	conn_pool_disconnect_server(pBinlogTrackerServer);
+	delete pBinlogTrackerServer;
 }
 
 void ProducerCli::ReadyProducer() {
@@ -253,9 +256,13 @@ void ProducerCli::_ProducerStopMsg() {
 
 void ProducerCli::_ProducerMsg(
 		const fdfs2qq::StorageVolumnObject &storageInfo) {
+	pTrackerServer = new ConnectionInfo;
+	strcpy(pTrackerServer->ip_addr, fdfs2qq::TRACKER_IP().c_str());
+	pTrackerServer->port = fdfs2qq::TRACKER_PORT();
+
+
+
 	//ready mutex  -->is_finished_hash
-
-
 	vector<string> filelist, globalid_list;
 	StorageConfig::GetfileListOfStoragepath(
 			storageInfo.volumnstr + "/" + storageInfo.subdir, filelist);
@@ -276,35 +283,41 @@ void ProducerCli::_ProducerMsg(
 			string tmp(*it);
 			tmp.erase(std::remove(tmp.begin(), tmp.end(), '\n'), tmp.end());
 			stringstream sm;
-			sm << fdfs2qq::CMD::REGIST
-					<< fdfs2qq::BOX_MSG_SEPERATOR<<storageInfo.volumnstr
-					<<fdfs2qq::BOX_MSG_SEPERATOR<< tmp
-					<< "\n";
+			sm << fdfs2qq::CMD::REGIST << fdfs2qq::BOX_MSG_SEPERATOR
+					<< storageInfo.volumnstr << fdfs2qq::BOX_MSG_SEPERATOR
+					<< tmp << "\n";
 			tmp = sm.str();
-			const size_t bodysize=sizeof(RESPONSE_HEADER);
+			const size_t bodysize = sizeof(RESPONSE_HEADER);
 
 			RESPONSE_HEADER header;
 			int result = TransferByData(pTrackerServer, tmp, header);
-			auto stssatus =String2int(std::string(header.ext_status));
-			if ( stssatus== RESPONSE_STATUS::REGISTSUCESS) {
-				fdfs2qq::Logger::info("send tracker fileid:%s ,response status :%s",tmp.c_str(),header.ext_status);
-
+			if (result < 0) {
+				fdfs2qq::Logger::info("file: " __FILE__ ", line: %d, "
+				"query error, filid :%s ",
+				__LINE__, header.fileid);
+				continue;
+			}
+			auto stssatus = String2int(std::string(header.ext_status));
+			if (stssatus == RESPONSE_STATUS::REGISTSUCESS) {
+				fdfs2qq::Logger::info(
+						"send tracker fileid:%s ,response status :%s",
+						tmp.c_str(), header.ext_status);
 
 				fdfs2qq::StorageFileObject fileobj;
-				try{
-					fileobj=ResponseObject2StorageFileObject(header);
+				try {
+					fileobj = ResponseObject2StorageFileObject(header);
 					G_ItemProduce_Mq.push(fileobj.global_fileid);
-				}catch(std::exception &ex){
+				} catch (std::exception &ex) {
 
 					fdfs2qq::Logger::error("file: " __FILE__ ", line: %d, "
 					"catch exception ,status :%s ,fileid:%s ,reason:%s ",
-					__LINE__, header.ext_status,header.fileid,ex.what());
+					__LINE__, header.ext_status, header.fileid, ex.what());
 				}
-		//end
+				//end
 			} else {
 				fdfs2qq::Logger::info("file: " __FILE__ ", line: %d, "
-							"depelated, filid :%s ",
-							__LINE__, header.fileid);
+				"depelated, filid :%s ",
+				__LINE__, header.fileid);
 			}
 		} else {
 			fdfs2qq::Logger::error(
@@ -313,9 +326,8 @@ void ProducerCli::_ProducerMsg(
 	}
 
 
-
 	conn_pool_disconnect_server(pTrackerServer);
-
+	delete pTrackerServer ;
 }
 
 //
@@ -355,6 +367,9 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 							"maybe disconnect? later? reason status %d :%s,",
 							__LINE__,  errorno,
 							STRERROR(errorno));
+
+							delete pConsumerServer;
+							continue;
 				}
 
 				TransferByData(pConsumerServer, fileid);
