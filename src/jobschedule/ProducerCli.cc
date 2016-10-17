@@ -347,6 +347,11 @@ void ProducerCli::ForkConsumer() {
 }
 
 void* ProducerCli::ListenItemConsumerMq(void*) {
+	pConsumerServer = new ConnectionInfo;
+	strcpy(pConsumerServer->ip_addr, fdfs2qq::CONSUME_IP().c_str());
+	pConsumerServer->port = fdfs2qq::CONSUME_PORT();
+
+
 	while (true) {
 		bool flg = false;
 		string fileid;
@@ -354,9 +359,6 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 			flg = G_ItemProduce_Mq.try_pop(fileid);
 			if (flg&&!fileid.empty()) {
 
-				pConsumerServer = new ConnectionInfo;
-				strcpy(pConsumerServer->ip_addr, fdfs2qq::CONSUME_IP().c_str());
-				pConsumerServer->port = fdfs2qq::CONSUME_PORT();
 
 				fdfs2qq::Logger::info(" send consume fileid::%s",fileid.c_str());
 
@@ -376,7 +378,7 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 				TransferByData(pConsumerServer, fileid);
 				conn_pool_disconnect_server(pConsumerServer);
 
-				delete pConsumerServer;
+				//delete pConsumerServer;
 			}
 		}
 
@@ -396,7 +398,8 @@ void signal_callback_handler(int signum){
 
 
 int main(int argc, const char *argv[]) {
-	 ::signal(SIGPIPE, signal_callback_handler);
+	::signal(SIGPIPE, signal_callback_handler);
+	::signal(SIGABRT, signal_callback_handler);
 	struct FastLogStat logstat = { kLogAll, kLogFatal, kLogSizeSplit };
 	FastLog::OpenLog(fdfs2qq::LOGPREFIX().c_str(), "fdfs2qq_produce", 2048, &logstat,
 			NULL);
