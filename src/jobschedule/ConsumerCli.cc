@@ -413,9 +413,12 @@ void ConsumerCli::_ConsumerMsg(const string  &infostr) {
 
 
 int main(int argc, const char *argv[]) {
+
 	struct FastLogStat logstat = { kLogAll, kLogFatal, kLogSizeSplit };
 	FastLog::OpenLog(fdfs2qq::LOGPREFIX().c_str(), "fdfs2qq_consume", 2048, &logstat,
 			NULL);
+
+	installSignal(SIGSEGV);
 
 	jobschedule::ConsumerCli::RunServer();
 

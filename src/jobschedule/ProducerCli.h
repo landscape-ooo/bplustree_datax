@@ -30,6 +30,9 @@
 #include <functional>
 #include <algorithm>
 
+extern "C"{
+	#include "XprofSignal.h"
+}
 
 #include "ganji/ganji_global.h"
 #include "common/common_define.h"

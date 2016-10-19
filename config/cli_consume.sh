@@ -15,7 +15,7 @@ case "$1" in
 			touch -- "$fdfs2qq_PID"
 		fi
  
-		nohup nice $fdfs2qq_BIN &> /dev/null & echo $! > $fdfs2qq_PID
+		nohup nice $fdfs2qq_BIN &> /dev/null 2>/tmp/cli_consume.error& echo $! > $fdfs2qq_PID
  
 		if [ "$?" != 0 ] ; then
 			echo " failed"

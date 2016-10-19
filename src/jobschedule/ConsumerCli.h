@@ -20,6 +20,7 @@
 #include <err.h>
 #include <event.h>
 #include <signal.h>
+
 #include "ganji/ganji_global.h"
 
 #include "common/common_define.h"
@@ -29,6 +30,7 @@
 #include "writer/TencentStorageServiceWriter.h"
 #include "transfer/unixdomain.h"
 extern "C"{
+	#include "XprofSignal.h"
 	#include "fastdfs/common/shared_func.h"
 }
 #include "ganji/util/log/thread_fast_log.hpp"

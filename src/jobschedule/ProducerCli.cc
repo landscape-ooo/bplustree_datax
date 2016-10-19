@@ -4,7 +4,6 @@
  *  Created on: Aug 25, 2016
  *      Author: a11
  */
-#include <signal.h>
 #include "ProducerCli.h"
 namespace jobschedule {
 const string ProducerCli::NULL_MSG_SIGNAL = "NULL MQ,NEED PUT MSG";
@@ -390,19 +389,14 @@ void* ProducerCli::ListenItemConsumerMq(void*) {
 
 
 
-/* Catch Signal Handler functio */
-void signal_callback_handler(int signum){
-        printf("Caught signal SIGPIPE %d\n",signum);
-}
-
 
 
 int main(int argc, const char *argv[]) {
-	::signal(SIGPIPE, signal_callback_handler);
-	::signal(SIGABRT, signal_callback_handler);
 	struct FastLogStat logstat = { kLogAll, kLogFatal, kLogSizeSplit };
 	FastLog::OpenLog(fdfs2qq::LOGPREFIX().c_str(), "fdfs2qq_produce", 2048, &logstat,
 			NULL);
+
+	installSignal(SIGSEGV);
 
 	jobschedule::ProducerCli::LSMBinlog();
 	//fork cons
